@@ -280,6 +280,35 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **OpenAI** - For inspiration in AI-powered content generation
 - **Community Contributors** - For feedback and improvements
 
+## � Upcoming Features
+
+### 📡 Arweave Permanence Integration
+- **Podcast Upload to Arweave**: Automatically upload generated podcasts to the Arweave network for permanent storage
+- **Decentralized Distribution**: Serve podcasts directly from the permaweb with permanent, censorship-resistant access
+- **Metadata Preservation**: Store podcast metadata, transcripts, and source data permanently on Arweave
+- **AR-IO Integration**: Leverage AR-IO gateways for optimized podcast delivery and discovery
+
+### 🐦 Social Media Content Scraping
+- **Twitter Thread Scraping**: Automatically extract and process Twitter/X threads related to Arweave ecosystem
+- **Real-time Social Monitoring**: Track mentions, discussions, and trending topics across social platforms
+- **Community Voice Integration**: Include community discussions and reactions in podcast content
+- **Social Sentiment Analysis**: AI-powered analysis of community sentiment and engagement metrics
+
+### 📰 Web Content Extraction
+- **Article & Blog Scraping**: Automatically scrape and process articles from Arweave-related websites and blogs
+- **URL-based Content Processing**: Direct input of article URLs for immediate processing and inclusion
+- **Multi-format Support**: Handle various content formats including Medium, Substack, personal blogs, and news sites
+- **Content Summarization**: AI-powered summarization of lengthy articles for podcast-friendly format
+- **Source Attribution**: Proper crediting and linking to original sources
+
+### � Enhanced Content Intelligence
+- **Cross-platform Aggregation**: Combine content from social media, articles, and official sources
+- **Contextual Relevance**: Smart filtering to include only the most relevant and impactful content
+- **Automated Research**: AI-driven discovery of related content and background information
+- **Dynamic Content Updates**: Real-time integration of breaking news and developments
+
+*These features are actively being developed to create the most comprehensive Arweave ecosystem podcast platform on the permaweb!*
+
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/tejasmate/arweave-today-ai-podcaster/issues)
@@ -289,30 +318,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Made with ❤️ for the Arweave ecosystem. Building the permanent web, one podcast at a time.
-
-## 🚀 Upcoming Features
-
-### 🎤 Enhanced Voice Models
-- **Advanced TTS Integration**: Voice model may be upgraded soon for even more natural speech synthesis
-- **Multiple Voice Options**: Planning to support different voice personalities beyond "Puck"
-- **Improved Audio Quality**: Enhanced processing for professional-grade podcast audio
-
-### 🐦 Social Media Integration
-- **X/Twitter Post Scraping**: Automatic collection of relevant Arweave ecosystem tweets and discussions
-- **Community Sentiment**: Integration of social media buzz and community reactions
-- **Real-time Social Updates**: Incorporation of breaking news from social platforms
-
-### 📰 Extended Content Sources
-- **Website Article Scraping**: Automatic extraction from Arweave-related blogs and news sites
-- **Documentation Updates**: Integration of official Arweave documentation changes
-- **Research Paper Summaries**: AI-powered summaries of academic papers and technical documents
-- **Enhanced Context**: Richer podcast content with broader ecosystem coverage
-
-### 🔮 Content Intelligence
-- **Contextual Linking**: Smart connections between related topics across different sources
-- **Trend Analysis**: AI-powered identification of emerging trends in the Arweave ecosystem
-- **Personalized Content**: Customizable focus areas based on listener preferences
-
-*These features are in active development. Stay tuned for updates!*
-
-## 🚀 Quick Start
