@@ -1,0 +1,7 @@
+gTTS==2.5.1
+pydub==0.25.1
+yt-dlp==2024.7.16
+faster-whisper==1.0.3
+requests==2.31.0
+google-generativeai 
+python-dotenv==1.0.0 

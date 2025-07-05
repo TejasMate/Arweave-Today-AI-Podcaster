@@ -1,0 +1,56 @@
+{
+    "topics": [
+      {
+        "url": "https://x.com/aoTheComputer/status/1938633550808383593",
+        "body": "Forward Research CTO Tom Wilson took the stage at Arweave Day Berlin to discuss AOS, the operating system at the heart of the AO Computer. \n\n His talk explored the origins of AOS, its current capabilities, and what’s next as the system continues to evolve.",
+        "video": "https://video.twimg.com/amplify_video/1938582773087817728/vid/avc1/1920x1080/FPMrz9LPTI-MAA-H.mp4",
+        "nature": "ao computer",
+        "headline": "Berlin Recap: AOS on HyperBEAM"
+      },
+      {
+        "url": "https://x.com/onlyarweave/status/1938266042461249602",
+        "body": "Heads up permabulls! There's just one day left to enter our Arweave Today Content Remix contest, where you can earn up to $200. \n\n All you need to do to enter is add your creative twist to our fully open sourced news feed. See last week's post for further details.",
+        "image": "https://arweave.net/ybsW7MqyAGNiY9chfkfoW8e50SemRm3aLkC-qLRsGro",
+        "nature": "giveaway",
+        "headline": "1 Day Left To Enter Arweave Today Remix Contest"
+      },
+      {
+        "url": "https://x.com/ar_io_network/status/1940043966730125519",
+        "body": "David Whittington recently shared a clear breakdown of the vital role gateways play in the ARIO network. \n\n Gateway nodes ensure access to the permaweb by providing key services like data caching and chain, bundle, and data indexing.",
+        "video": "https://video.twimg.com/ext_tw_video/1803425893680848896/pu/vid/avc1/1280x720/pzP2ES-V5jWG9DiB.mp4?tag=12",
+        "nature": "developer",
+        "headline": "ARIO Gateway Services Overview"
+      },
+      {
+        "url": "https://x.com/xylophonezy/status/1940406217425445209",
+        "body": "Following $LOAD's fair launch, Benjamin Brandall shared a tutorial on creating a custom delegation page outside of the official dashboard. \n\n The guide covers querying current delegations, adjusting percentages, and sending updates to AO to support custom fair launches efficiently.",
+        "image": "https://arweave.net/2ooi3UmovhmzN9m36q6WNwgcNrUICVMzMSiAf2dKiaM",
+        "nature": "developer",
+        "headline": "Building a Custom Delegation Page for Fair Launch Tokens"
+      },
+      {
+        "url": "https://x.com/ardriveapp/status/1940535846677185017",
+        "body": "ArDrive archived this year’s NFT.NYC artwork permanently with a browsable gallery featuring 85 pages of digital art. \n\n JonnieSparkles noted that the process of organizing assets, creating a JSON index, and publishing through ArNS took just one hour.",
+        "image": "https://arweave.net/KEQ6WkFUbroH2ebqKMVmjak4NJHWqtQ3mmXeKXlMUUA",
+        "button": "Visit the gallery",
+        "nature": "nfts",
+        "headline": "NFT.NYC Artwork Preserved Permanently"
+      }
+    ],
+    "chitchat": {
+      "body": "This long-term funding mechanism ensures miner incentives remain strong, only releasing tokens if regular block rewards fall short of covering permanent data storage.",
+      "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYXN5aDl3bHdzeGhuandqNXlkdmdjd2JnZnBwODA2Z3hld295ZGw0YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/323ZMyEWEqmhq5ZpTB/giphy.gif",
+      "nature": "did you know?",
+      "headline": "Arweave's endowment holds over 240,000 $AR"
+    },
+    "suggested": {
+      "url": "https://paragraph.com/@permaweb-journal/permaweb-goes-irl-bazar-in-nyc",
+      "body": "If you'd like to learn more about Arweave's presence at NFT.NTC, check out this write-up in the Permaweb Journal. \n\n Bazar's El Tío had a busy week in the Big Apple as he represented the permaweb across several events.",
+      "image": "https://arweave.net/NdvAXJWp4Vx1jvL0Idgz9IPFbSMh-mHfzNiyMUN66mg",
+      "button": "Read article",
+      "nature": "today's read",
+      "headline": "Permaweb Goes IRL: Bazar in NYC"
+    },
+    "ts": 1751539290318,
+    "previous": "Ts7M0J6g1ISh40BD_1g8G7QIuTi68RT_iV0fJD0sd_Y"
+  }
