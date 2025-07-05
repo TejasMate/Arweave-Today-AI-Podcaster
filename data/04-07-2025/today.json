@@ -1,0 +1,63 @@
+{
+  "topics": [
+    {
+      "url": "https://x.com/onlyarweave/status/1938266042461249602",
+      "body": "Today's your final chance to enter our $200 Arweave Today Remix Contest. \n\n Simply take our content feed and incorporate it into an existing site (or vibe code a new one). See the post for further details and inspiration.",
+      "image": "https://arweave.net/ybsW7MqyAGNiY9chfkfoW8e50SemRm3aLkC-qLRsGro",
+      "nature": "giveaway",
+      "featured": "true",
+      "headline": "Final Chance To Enter $200 Remix Contest"
+    },
+    {
+      "url": "https://x.com/usewander/status/1940841240850747439",
+      "body": "Wander announced the fair launch of $WNDR, the token powering its growing ecosystem of tools for a unified onchain experience. \n\n From login to storage, apps like Wander Connect and upcoming Wander Pools aim to make permanent infrastructure easy to access.",
+      "image": "https://arweave.net/WaKOyUtzWwLUZprLOY_T8Us8NCkZ4nFA_LMcvPbhn64",
+      "nature": "token",
+      "headline": "Wander Wallet Announces Fair Launch Token"
+    },
+    {
+      "url": "https://x.com/ar_io_network/status/1940749924393738715",
+      "body": "The RandAO team has been awarded $15,000 in $ARIO tokens to build Rewind, a React-based tool to explorer Arweave Name System history. \n\n Rewind will let users trace domain ownership and updates through an intuitive visual timeline, adding clarity and transparency to ArNS records.",
+      "image": "https://arweave.net/P_uS2KMR42KkoVe72B-o1jUl1aPqbSFPTyomlU-q87I",
+      "nature": "funding",
+      "headline": "RandAO Awarded ArNS Explorer Grant "
+    },
+    {
+      "url": "https://x.com/ar_io_network/status/1940840464900673619",
+      "body": "With billboards in Times Square, funding for builders, and real-time flight tracking, the month of June was a busy one for the ARIO team. \n\n Catch up on these milestones and plenty more in the latest Gateway recap, hosted by the one and only MC Lars.",
+      "video": "https://video.twimg.com/amplify_video/1940823960368586752/vid/avc1/1920x1080/X3D1oAJzuOA8eDM8.mp4",
+      "nature": "community",
+      "headline": "ARIO Network's June Recap"
+    },
+    {
+      "url": "https://x.com/aoTheComputer/status/1940807422588670093",
+      "body": "The first acceptance emails just went out for Agents of the Permaweb, an AI hackathon with a $39,000 prize pool and several tracks. \n\n If you're building at the intersection and crypto and AI, feel free to apply through Luma before August 7.",
+      "video": "https://video.twimg.com/amplify_video/1940766654645841920/vid/avc1/1920x1080/7-f9IPWvEcRoWwmm.mp4",
+      "nature": "event",
+      "headline": "Agents of the Permaweb Acceptances Begin"
+    },
+    {
+      "url": "https://x.com/jajablinky/status/1940880182577127611",
+      "body": "Forward Research’s Dylan Shade has created a powerful document collector that filters over 300 pages of permaweb resources. \n\n Builders can now select exactly what they need to generate fine-tuned LLM prompts for their Arweave and AO projects.",
+      "image": "https://arweave.net/l-g8VnwhQNeejMoFXaQChFQGwxows5AZiE-mf-U_2AM",
+      "nature": "developer",
+      "headline": "Permaweb LLM Fuel"
+    }
+  ],
+  "chitchat": {
+    "body": "The platform stores content on Arweave and includes an analytics dashboard to track views and engagement.",
+    "image": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2lja3N4MGN4NjV1NWtoMWkxNGZ6Z25pZ2J1MXVmamhucHBoMWhvdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TL6kkg5BSUWvLexB99/giphy.gif",
+    "nature": "Did you know?",
+    "headline": "MetaLinks helps you build a permanent link hub for directing traffic to your socials, sites, and other resources"
+  },
+  "suggested": {
+    "url": "https://x.com/ar_io_network/status/1940882522075746552",
+    "body": "Online trust is collapsing due to link rot, AI slop, and centralized control over public memory and digital history. \n\n Discover how ARIO and Arweave rise to these challenges, by making knowledge traceable, tamper-resistant, and permanently accessible.",
+    "image": "https://arweave.net/Wg-TyBq4Dh3SjiMpqDoyTalhquVC1svmgEYuqPDMk24",
+    "button": "Read article",
+    "nature": "today's read",
+    "headline": "The Verification Crisis: The Quest for Authenticity Online"
+  },
+  "ts": 1751618962321,
+  "previous": "njCjDc9PE58cdZ75gybMYCnGTMz-i0MBBJ6lHF0sGr4"
+}

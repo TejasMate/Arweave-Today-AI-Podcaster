@@ -164,10 +164,14 @@ def load_news_data(file_path: str) -> dict:
         print(f"Error: The file '{file_path}' is not a valid JSON file.")
         return None
 
-def generate_script(news_data: dict) -> str:
+def generate_script(news_data: dict, output_dir: str = None) -> str:
     """
     Generates a raw podcast script from the news data, including video transcriptions.
     This will later be processed by Gemini AI for professional script generation.
+    
+    Args:
+        news_data: The news data dictionary
+        output_dir: Optional output directory for transcripts. If None, uses default location.
     """
     # Get the publication date
     timestamp_ms = news_data.get('ts', 0)
@@ -181,7 +185,9 @@ def generate_script(news_data: dict) -> str:
         "MAIN STORIES:"
     ]
     
-    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'output')
+    # Use provided output_dir or default to generic output folder
+    if output_dir is None:
+        output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'output')
 
     for i, topic in enumerate(news_data.get('topics', []), 1):
         # Add clear topic separation marker
@@ -855,6 +861,7 @@ def fetch_online_news_data(url: str = "https://today_arweave.ar.io/") -> dict:
 def save_news_data_locally(news_data: dict, file_path: str) -> bool:
     """
     Saves the fetched news data to a local JSON file for backup/offline use.
+    Also creates a date-based directory structure.
     
     Args:
         news_data: The news data dictionary to save.
@@ -867,6 +874,24 @@ def save_news_data_locally(news_data: dict, file_path: str) -> bool:
         # Create directory if it doesn't exist
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         
+        # Create date-based directory structure from JSON timestamp
+        if 'ts' in news_data:
+            timestamp_ms = news_data.get('ts', 0)
+            pub_date = datetime.fromtimestamp(timestamp_ms / 1000)
+            date_folder = pub_date.strftime('%d-%m-%Y')
+            
+            # Create date-based directory in data folder
+            base_dir = os.path.dirname(os.path.dirname(file_path))  # Go up to project root
+            date_dir = os.path.join(base_dir, 'data', date_folder)
+            os.makedirs(date_dir, exist_ok=True)
+            
+            # Save a copy in the date-based directory
+            date_file_path = os.path.join(date_dir, 'today.json')
+            with open(date_file_path, 'w', encoding='utf-8') as f:
+                json.dump(news_data, f, indent=2, ensure_ascii=False)
+            print(f"📅 News data saved in date directory: {date_folder}/today.json")
+        
+        # Save the regular backup file
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(news_data, f, indent=2, ensure_ascii=False)
         print(f"💾 News data saved locally: {os.path.basename(file_path)}")
@@ -1012,9 +1037,21 @@ def main():
         print("❌ Could not load news data from any source. Exiting.")
         return
 
+    # Create the output directory structure based on date
+    timestamp_ms = news_data.get('ts', 0)
+    pub_date = datetime.fromtimestamp(timestamp_ms / 1000)
+    date_folder = pub_date.strftime('%d-%m-%Y')
+    
+    # Create date-based output directory
+    base_output_dir = os.path.join(script_dir, '..', 'output')
+    output_dir = os.path.join(base_output_dir, date_folder)
+    os.makedirs(output_dir, exist_ok=True)
+    
+    print(f"📁 Output directory: output/{date_folder}")
+
     # Generate the raw podcast script (including video transcription)
     print("📝 Generating raw podcast script with video transcription...")
-    raw_script_content = generate_script(news_data)
+    raw_script_content = generate_script(news_data, output_dir)
 
     # Get the publication date for Gemini processing
     timestamp_ms = news_data.get('ts', 0)
@@ -1030,10 +1067,6 @@ def main():
     else:
         print("📄 Using raw script (Gemini AI not available or disabled)")
         final_script_content = raw_script_content
-
-    # Create the output directory if it doesn't exist
-    output_dir = os.path.join(script_dir, '..', 'output')
-    os.makedirs(output_dir, exist_ok=True)
 
     # Define output file paths
     datestamp = datetime.fromtimestamp(news_data['ts'] / 1000).strftime('%Y-%m-%d')

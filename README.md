@@ -1,5 +1,7 @@
 # 🎙️ Arweave Today AI Podcaster
 
+> **⚠️ Demo Project Notice**: This is a demonstration project built urgently for showcasing AI-powered podcast generation capabilities. AI services and integrations may change as we iterate and improve the system. Please expect updates and modifications to the underlying AI models and service providers.
+
 An intelligent, automated podcast generator that transforms Arweave ecosystem news into professional-quality audio content. This tool fetches the latest news from the Arweave Today feed, transcribes video content, enhances scripts with AI, and generates natural-sounding podcast audio.
 
 ## ✨ Features
@@ -106,8 +108,7 @@ When running the script, you'll be prompted to choose a data source:
 ```
 arweave-today-ai-podcaster/
 ├── src/
-│   ├── podcast_generator.py    # Main application
-│   └── test_gemini.py         # Testing utilities
+│   └── podcast_generator.py      # Main application
 ├── data/
 │   ├── today.json             # Local news data
 │   └── today_backup.json      # Auto-saved backup
@@ -174,15 +175,16 @@ If FFmpeg is not in your system PATH:
 
 ## 🧪 Testing
 
-Test individual components:
+The main script includes built-in API testing:
 
 ```bash
-# Test Gemini AI integration
-python test_gemini.py
+# Run with built-in API testing
+python podcast_generator.py
+# The script automatically tests Gemini AI and AssemblyAI connections
 
 # Test with local data only
 python podcast_generator.py
-# Choose option 2 (Local)
+# Choose option 2 (Local) when prompted
 ```
 
 ## 🐛 Troubleshooting
@@ -256,3 +258,30 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Made with ❤️ for the Arweave ecosystem. Building the permanent web, one podcast at a time.
+
+## 🚀 Upcoming Features
+
+### 🎤 Enhanced Voice Models
+- **Advanced TTS Integration**: Voice model may be upgraded soon for even more natural speech synthesis
+- **Multiple Voice Options**: Planning to support different voice personalities beyond "Puck"
+- **Improved Audio Quality**: Enhanced processing for professional-grade podcast audio
+
+### 🐦 Social Media Integration
+- **X/Twitter Post Scraping**: Automatic collection of relevant Arweave ecosystem tweets and discussions
+- **Community Sentiment**: Integration of social media buzz and community reactions
+- **Real-time Social Updates**: Incorporation of breaking news from social platforms
+
+### 📰 Extended Content Sources
+- **Website Article Scraping**: Automatic extraction from Arweave-related blogs and news sites
+- **Documentation Updates**: Integration of official Arweave documentation changes
+- **Research Paper Summaries**: AI-powered summaries of academic papers and technical documents
+- **Enhanced Context**: Richer podcast content with broader ecosystem coverage
+
+### 🔮 Content Intelligence
+- **Contextual Linking**: Smart connections between related topics across different sources
+- **Trend Analysis**: AI-powered identification of emerging trends in the Arweave ecosystem
+- **Personalized Content**: Customizable focus areas based on listener preferences
+
+*These features are in active development. Stay tuned for updates!*
+
+## 🚀 Quick Start
