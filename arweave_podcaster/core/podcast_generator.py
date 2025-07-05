@@ -137,7 +137,7 @@ class PodcastGenerator:
             print(f"❌ Error during podcast generation: {e}")
             return False
     
-    def generate_podcast_from_file(self, json_file_path: str) -> bool:
+    def generate_podcast_from_file(self, json_file_path: str) -> Optional[str]:
         """
         Generate a podcast directly from a JSON file.
         
@@ -145,7 +145,7 @@ class PodcastGenerator:
             json_file_path: Path to the JSON file containing news data
             
         Returns:
-            True if successful, False otherwise
+            Output directory path if successful, None otherwise
         """
         try:
             # Load news data from file
@@ -215,11 +215,11 @@ class PodcastGenerator:
             self._print_generation_summary(output_dir, raw_filename, final_filename, 
                                          audio_filename if success else None)
             
-            return True
+            return output_dir
             
         except Exception as e:
             print(f"❌ Error processing JSON file: {e}")
-            return False
+            return None
 
     def _generate_raw_script(self, news_data: Dict[str, Any], date_str: str) -> str:
         """
@@ -335,7 +335,8 @@ def main(json_file: Optional[str] = None) -> None:
         if json_file:
             # Direct JSON file mode
             print(f"📁 Using provided JSON file: {json_file}")
-            success = generator.generate_podcast_from_file(json_file)
+            output_dir = generator.generate_podcast_from_file(json_file)
+            success = output_dir is not None
         else:
             # Interactive mode - get user choice for data source
             user_choice = get_user_choice_for_data_source()

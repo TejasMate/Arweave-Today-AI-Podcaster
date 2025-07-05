@@ -1,0 +1,591 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Alert Container -->
+<div id="alert-container"></div>
+
+<!-- Hero Section -->
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold text-primary mb-3">
+        <i class="fas fa-microphone-alt me-3"></i>
+        AI Podcast Generator
+    </h1>
+    <p class="lead text-muted">
+        Transform your JSON data into engaging AI-powered podcasts with just a few clicks
+    </p>
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="feature-icon">
+                <i class="fas fa-upload"></i>
+            </div>
+            <h5>Upload JSON</h5>
+            <p class="text-muted">Upload your structured data file</p>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-icon">
+                <i class="fas fa-magic"></i>
+            </div>
+            <h5>AI Processing</h5>
+            <p class="text-muted">Our AI transforms it into a podcast</p>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-icon">
+                <i class="fas fa-download"></i>
+            </div>
+            <h5>Download Audio</h5>
+            <p class="text-muted">Get your professional podcast file</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Tabs -->
+<ul class="nav nav-pills nav-fill mb-4" id="mainTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="upload-tab" data-bs-toggle="pill" data-bs-target="#upload-panel" type="button" role="tab">
+            <i class="fas fa-cloud-upload-alt me-2"></i>Upload File
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="paste-tab" data-bs-toggle="pill" data-bs-target="#paste-panel" type="button" role="tab">
+            <i class="fas fa-clipboard me-2"></i>Paste JSON
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="status-tab" data-bs-toggle="pill" data-bs-target="#status-panel" type="button" role="tab">
+            <i class="fas fa-tasks me-2"></i>Job Status
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="mainTabsContent">
+    <!-- Upload Panel -->
+    <div class="tab-pane fade show active" id="upload-panel" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-file-upload me-2"></i>
+                            Upload JSON File
+                        </h5>
+                        <p class="card-text text-muted">
+                            Select a JSON file containing your podcast data structure.
+                        </p>
+                        
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h5>Drag & Drop your JSON file here</h5>
+                                <p class="text-muted">or click to browse</p>
+                                <input type="file" id="fileInput" name="file" accept=".json" class="d-none">
+                                <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-folder-open me-2"></i>Browse Files
+                                </button>
+                            </div>
+                            
+                            <div id="fileInfo" class="mt-3 d-none">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-file-alt me-2"></i>
+                                    <strong>Selected:</strong> <span id="fileName"></span>
+                                    <br>
+                                    <small><strong>Size:</strong> <span id="fileSize"></span></small>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-success" id="uploadBtn" disabled>
+                                    <i class="fas fa-rocket me-2"></i>Generate Podcast
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="clearFileBtn" onclick="clearFile()" disabled>
+                                    <i class="fas fa-times me-2"></i>Clear
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-info-circle me-2"></i>
+                            File Requirements
+                        </h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>JSON format only</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Max size: 10MB</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Must include 'topics' array</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Each topic needs 'headline' and 'body'</li>
+                        </ul>
+                        
+                        <div class="mt-3">
+                            <a href="{{ url_for('example_json') }}" target="_blank" class="btn btn-warning btn-sm">
+                                <i class="fas fa-eye me-2"></i>View Example
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paste Panel -->
+    <div class="tab-pane fade" id="paste-panel" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-paste me-2"></i>
+                            Paste JSON Content
+                        </h5>
+                        <p class="card-text text-muted">
+                            Paste your JSON content directly into the text area below.
+                        </p>
+                        
+                        <form id="pasteForm">
+                            <div class="mb-3">
+                                <textarea class="form-control" id="jsonContent" rows="15" placeholder='Paste your JSON here...
+
+Example:
+{
+  "topics": [
+    {
+      "headline": "Your Topic Title",
+      "body": "Your topic content...",
+      "url": "https://example.com",
+      "nature": "news"
+    }
+  ]
+}'></textarea>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success" id="pasteBtn">
+                                    <i class="fas fa-rocket me-2"></i>Generate Podcast
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="clearPaste()">
+                                    <i class="fas fa-trash me-2"></i>Clear
+                                </button>
+                                <button type="button" class="btn btn-warning" onclick="loadExample()">
+                                    <i class="fas fa-magic me-2"></i>Load Example
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Tips
+                        </h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-arrow-right text-primary me-2"></i>Ensure valid JSON syntax</li>
+                            <li><i class="fas fa-arrow-right text-primary me-2"></i>Include engaging content</li>
+                            <li><i class="fas fa-arrow-right text-primary me-2"></i>Add URLs for context</li>
+                            <li><i class="fas fa-arrow-right text-primary me-2"></i>Video URLs are optional</li>
+                        </ul>
+                        
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="fas fa-clock me-1"></i>
+                                Processing typically takes 2-5 minutes depending on content length.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Panel -->
+    <div class="tab-pane fade" id="status-panel" role="tabpanel">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-tasks me-2"></i>
+                    Job Status
+                </h5>
+                <p class="card-text text-muted">
+                    Track the progress of your podcast generation jobs.
+                </p>
+                
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="jobIdInput" placeholder="Enter Job ID to check status">
+                        <button class="btn btn-primary" onclick="checkStatus()">
+                            <i class="fas fa-search me-2"></i>Check Status
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="statusResults"></div>
+                
+                <div id="recentJobs" class="mt-4">
+                    <h6>Recent Jobs</h6>
+                    <div id="recentJobsList">
+                        <p class="text-muted">No recent jobs found. Start by uploading a file or pasting JSON content.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Modal -->
+<div class="modal fade" id="processingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs me-2"></i>
+                    Generating Podcast
+                </h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-microphone-alt fa-3x text-primary mb-3"></i>
+                </div>
+                <h6 id="processingMessage">Initializing...</h6>
+                <div class="progress mt-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+                <p class="text-muted mt-2">
+                    <small>This may take a few minutes. Please don't close this window.</small>
+                </p>
+                <div class="mt-3">
+                    <strong>Job ID:</strong> <span id="currentJobId" class="font-monospace">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Podcast Generated Successfully!
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-download fa-3x text-success mb-3"></i>
+                </div>
+                <p>Your podcast has been generated and is ready for download.</p>
+                <div class="d-grid gap-2">
+                    <a href="#" id="downloadAudioBtn" class="btn btn-success">
+                        <i class="fas fa-file-audio me-2"></i>Download Audio
+                    </a>
+                    <a href="#" id="downloadScriptBtn" class="btn btn-outline-primary">
+                        <i class="fas fa-file-text me-2"></i>Download Script
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentJobId = null;
+let statusCheckInterval = null;
+
+// File upload handling
+document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+document.getElementById('uploadForm').addEventListener('submit', handleUpload);
+document.getElementById('pasteForm').addEventListener('submit', handlePaste);
+
+// Drag and drop handling
+const fileUploadArea = document.getElementById('fileUploadArea');
+fileUploadArea.addEventListener('click', () => document.getElementById('fileInput').click());
+fileUploadArea.addEventListener('dragover', handleDragOver);
+fileUploadArea.addEventListener('dragleave', handleDragLeave);
+fileUploadArea.addEventListener('drop', handleDrop);
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) {
+        displayFileInfo(file);
+    }
+}
+
+function displayFileInfo(file) {
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatFileSize(file.size);
+    document.getElementById('fileInfo').classList.remove('d-none');
+    document.getElementById('uploadBtn').disabled = false;
+    document.getElementById('clearFileBtn').disabled = false;
+}
+
+function clearFile() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileInfo').classList.add('d-none');
+    document.getElementById('uploadBtn').disabled = true;
+    document.getElementById('clearFileBtn').disabled = true;
+}
+
+function clearPaste() {
+    document.getElementById('jsonContent').value = '';
+}
+
+function loadExample() {
+    fetch('/example')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('jsonContent').value = JSON.stringify(data, null, 2);
+        })
+        .catch(error => {
+            showAlert('Failed to load example: ' + error.message, 'danger');
+        });
+}
+
+function handleDragOver(event) {
+    event.preventDefault();
+    fileUploadArea.classList.add('dragover');
+}
+
+function handleDragLeave(event) {
+    event.preventDefault();
+    fileUploadArea.classList.remove('dragover');
+}
+
+function handleDrop(event) {
+    event.preventDefault();
+    fileUploadArea.classList.remove('dragover');
+    
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+        document.getElementById('fileInput').files = files;
+        displayFileInfo(files[0]);
+    }
+}
+
+function handleUpload(event) {
+    event.preventDefault();
+    
+    const formData = new FormData();
+    const fileInput = document.getElementById('fileInput');
+    
+    if (!fileInput.files[0]) {
+        showAlert('Please select a file first', 'warning');
+        return;
+    }
+    
+    formData.append('file', fileInput.files[0]);
+    
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            startJobTracking(data.job_id);
+        } else {
+            showAlert(data.error || 'Upload failed', 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Upload failed: ' + error.message, 'danger');
+    });
+}
+
+function handlePaste(event) {
+    event.preventDefault();
+    
+    const content = document.getElementById('jsonContent').value.trim();
+    
+    if (!content) {
+        showAlert('Please paste JSON content first', 'warning');
+        return;
+    }
+    
+    fetch('/paste', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: content })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            startJobTracking(data.job_id);
+        } else {
+            showAlert(data.error || 'Processing failed', 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Processing failed: ' + error.message, 'danger');
+    });
+}
+
+function startJobTracking(jobId) {
+    currentJobId = jobId;
+    document.getElementById('currentJobId').textContent = jobId;
+    
+    // Store job in localStorage for recent jobs
+    storeRecentJob(jobId);
+    updateRecentJobsList();
+    
+    // Show processing modal
+    const modal = new bootstrap.Modal(document.getElementById('processingModal'));
+    modal.show();
+    
+    // Start status checking
+    statusCheckInterval = setInterval(() => checkJobStatus(jobId), 2000);
+    checkJobStatus(jobId); // Initial check
+}
+
+function checkJobStatus(jobId) {
+    fetch(`/status/${jobId}`)
+        .then(response => response.json())
+        .then(data => {
+            updateProcessingUI(data);
+            
+            if (data.status === 'completed') {
+                clearInterval(statusCheckInterval);
+                showSuccessModal(data);
+            } else if (data.status === 'error') {
+                clearInterval(statusCheckInterval);
+                bootstrap.Modal.getInstance(document.getElementById('processingModal')).hide();
+                showAlert(data.message || 'Processing failed', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Status check failed:', error);
+        });
+}
+
+function updateProcessingUI(data) {
+    document.getElementById('processingMessage').textContent = data.message || 'Processing...';
+    
+    const progressBar = document.querySelector('.progress-bar');
+    let progress = 20; // Default progress
+    
+    switch (data.status) {
+        case 'queued':
+            progress = 10;
+            break;
+        case 'processing':
+            progress = 60;
+            break;
+        case 'completed':
+            progress = 100;
+            break;
+        case 'error':
+            progress = 0;
+            break;
+    }
+    
+    progressBar.style.width = progress + '%';
+}
+
+function showSuccessModal(data) {
+    bootstrap.Modal.getInstance(document.getElementById('processingModal')).hide();
+    
+    if (data.audio_download_url) {
+        document.getElementById('downloadAudioBtn').href = data.audio_download_url;
+    }
+    if (data.script_download_url) {
+        document.getElementById('downloadScriptBtn').href = data.script_download_url;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('successModal'));
+    modal.show();
+}
+
+function checkStatus() {
+    const jobId = document.getElementById('jobIdInput').value.trim();
+    if (!jobId) {
+        showAlert('Please enter a Job ID', 'warning');
+        return;
+    }
+    
+    fetch(`/status/${jobId}`)
+        .then(response => response.json())
+        .then(data => {
+            displayStatusResults(data, jobId);
+        })
+        .catch(error => {
+            showAlert('Failed to check status: ' + error.message, 'danger');
+        });
+}
+
+function displayStatusResults(data, jobId) {
+    const resultsDiv = document.getElementById('statusResults');
+    const statusClass = `status-${data.status}`;
+    
+    let downloadButtons = '';
+    if (data.status === 'completed') {
+        if (data.audio_download_url) {
+            downloadButtons += `<a href="${data.audio_download_url}" class="btn btn-success btn-sm me-2"><i class="fas fa-file-audio me-1"></i>Audio</a>`;
+        }
+        if (data.script_download_url) {
+            downloadButtons += `<a href="${data.script_download_url}" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-text me-1"></i>Script</a>`;
+        }
+    }
+    
+    resultsDiv.innerHTML = `
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle me-2"></i>Job Status: ${jobId}</h6>
+            <p>
+                <span class="status-indicator ${statusClass}"></span>
+                <strong>Status:</strong> ${data.status.charAt(0).toUpperCase() + data.status.slice(1)}
+            </p>
+            <p><strong>Message:</strong> ${data.message}</p>
+            ${data.created_at ? `<p><strong>Created:</strong> ${formatDateTime(data.created_at)}</p>` : ''}
+            ${downloadButtons ? `<div class="mt-2">${downloadButtons}</div>` : ''}
+        </div>
+    `;
+}
+
+function storeRecentJob(jobId) {
+    let recentJobs = JSON.parse(localStorage.getItem('recentJobs') || '[]');
+    recentJobs.unshift({ id: jobId, timestamp: new Date().toISOString() });
+    recentJobs = recentJobs.slice(0, 5); // Keep only last 5 jobs
+    localStorage.setItem('recentJobs', JSON.stringify(recentJobs));
+}
+
+function updateRecentJobsList() {
+    const recentJobs = JSON.parse(localStorage.getItem('recentJobs') || '[]');
+    const listDiv = document.getElementById('recentJobsList');
+    
+    if (recentJobs.length === 0) {
+        listDiv.innerHTML = '<p class="text-muted">No recent jobs found.</p>';
+        return;
+    }
+    
+    const jobsHtml = recentJobs.map(job => `
+        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <div>
+                <code>${job.id}</code>
+                <br>
+                <small class="text-muted">${formatDateTime(job.timestamp)}</small>
+            </div>
+            <button class="btn btn-sm btn-outline-primary" onclick="checkJobStatus('${job.id}'); document.getElementById('jobIdInput').value='${job.id}';">
+                <i class="fas fa-eye"></i>
+            </button>
+        </div>
+    `).join('');
+    
+    listDiv.innerHTML = jobsHtml;
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    updateRecentJobsList();
+});
+</script>
+{% endblock %}

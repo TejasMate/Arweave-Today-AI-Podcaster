@@ -101,6 +101,8 @@ https://github.com/user-attachments/assets/1cabd7e0-a61d-401c-a698-4669f3916abc
    ```
 
 5. **Run the generator**
+   
+   **Command Line Interface:**
    ```bash
    python main.py
    
@@ -109,6 +111,12 @@ https://github.com/user-attachments/assets/1cabd7e0-a61d-401c-a698-4669f3916abc
    
    # OR as module
    python -m arweave_podcaster.core.podcast_generator
+   ```
+   
+   **Web Interface (Recommended for beginners):**
+   ```bash
+   python web_app.py
+   # Then open http://localhost:5000 in your browser
    ```
 
 ## 🎮 Usage
@@ -149,6 +157,42 @@ python main.py --help
 - `-f, --file PATH` - Path to JSON file containing news data
 - `-h, --help` - Show help message
 - `--version` - Show version information
+
+### 🌐 Web Interface
+Access the modern web interface for easy podcast generation:
+
+```bash
+# Start the web interface
+python web_app.py
+
+# OR run in the background
+nohup python web_app.py > web_app.log 2>&1 &
+```
+
+**Web Interface Features:**
+- 📁 **File Upload**: Drag & drop or browse to upload JSON files
+- 📋 **JSON Paste**: Paste JSON content directly into the web editor
+- 📊 **Real-time Status**: Track job progress with live updates
+- 📥 **Easy Downloads**: Download generated audio and script files
+- 📱 **Responsive Design**: Works on desktop, tablet, and mobile devices
+
+**Access Points:**
+- 🏠 **Main Interface**: http://localhost:5000
+- 📊 **Job Status**: http://localhost:5000/status/<job_id>
+- 📝 **Example JSON**: http://localhost:5000/example
+- 🧹 **Cleanup**: http://localhost:5000/cleanup (admin)
+
+**Usage Steps:**
+1. Start the web app: `python web_app.py`
+2. Open http://localhost:5000 in your browser
+3. Choose to upload a file or paste JSON content
+4. Monitor the real-time progress
+5. Download your generated podcast when complete
+
+**Web Interface Requirements:**
+- All the same requirements as CLI mode
+- Flask web framework (automatically installed)
+- Modern web browser with JavaScript enabled
 
 ### Examples
 ```bash
@@ -231,7 +275,12 @@ arweave-today-ai-podcaster/
 │       ├── ArweaveToday-YYYY-MM-DD.txt
 │       ├── ArweaveToday-YYYY-MM-DD.wav
 │       └── topic_*_video_transcript.txt
+├── templates/                     # Web interface templates
+│   ├── base.html                  # Base template with styling
+│   └── index.html                 # Main web interface
+├── uploads/                       # Temporary file uploads
 ├── main.py                        # CLI entry point
+├── web_app.py                     # Web interface entry point
 ├── setup.py                       # Package setup (legacy)
 ├── pyproject.toml                 # Modern packaging config
 ├── requirements.txt               # Dependencies
@@ -326,6 +375,10 @@ Add verbose logging by modifying the script or check output files for detailed e
 - `yt-dlp==2024.7.16` - Video downloading
 - `requests==2.31.0` - HTTP requests
 - `python-dotenv==1.0.0` - Environment variable management
+
+### Web Interface Dependencies
+- `flask>=3.0.0` - Web framework for the browser interface
+- `werkzeug>=3.0.0` - WSGI toolkit for Flask
 
 ### Optional Dependencies
 - `pydub==0.25.1` - Audio processing utilities
