@@ -69,13 +69,38 @@ https://github.com/user-attachments/assets/1cabd7e0-a61d-401c-a698-4669f3916abc
    pip install -e .[dev]  # Include development dependencies
    ```
 
-3. **Configure environment**
+3. **Install FFmpeg (Required for audio processing)**
+
+   **On Ubuntu/Debian:**
+   ```bash
+   sudo apt update
+   sudo apt install ffmpeg
+   ```
+
+   **On macOS (with Homebrew):**
+   ```bash
+   brew install ffmpeg
+   ```
+
+   **On Windows:**
+   - Download FFmpeg from [official website](https://ffmpeg.org/download.html)
+   - Extract to a folder (e.g., `C:\ffmpeg`)
+   - Add `C:\ffmpeg\bin` to your system PATH
+   - OR set `FFMPEG_PATH=C:\ffmpeg\bin` in your `.env` file
+
+   **Verify Installation:**
+   ```bash
+   ffmpeg -version
+   ```
+   You should see FFmpeg version information if installed correctly.
+
+4. **Configure environment**
    ```bash
    cp .env.example .env
    # Edit .env with your API keys
    ```
 
-4. **Run the generator**
+5. **Run the generator**
    ```bash
    python main.py
    
