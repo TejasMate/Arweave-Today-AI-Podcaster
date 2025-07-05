@@ -1,7 +1,5 @@
 # 🎙️ Arweave Today AI Podcaster
 
-> **⚠️ Demo Project Notice**: This is a demonstration project built urgently for showcasing AI-powered podcast generation capabilities. AI services and integrations may change as we iterate and improve the system. Please expect updates and modifications to the underlying AI models and service providers.
-
 An intelligent, automated podcast generator that transforms Arweave ecosystem news into professional-quality audio content. This tool fetches the latest news from the Arweave Today feed, transcribes video content, enhances scripts with AI, and generates natural-sounding podcast audio.
 
 ## ✨ Features
