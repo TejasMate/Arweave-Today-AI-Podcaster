@@ -2,6 +2,10 @@
 
 An intelligent, automated podcast generator that transforms Arweave ecosystem news into professional-quality audio content. This tool fetches the latest news from the Arweave Today feed, transcribes video content, enhances scripts with AI, and generates natural-sounding podcast audio.
 
+## Demo
+
+https://github.com/user-attachments/assets/49f7d38e-46d8-4c2c-bbe6-96aaec5a4daf
+
 ## 🎧 Sample Generated Podcast
 
 Here's an example of what the AI generates - listen to how it transforms raw news into a natural, conversational podcast:
