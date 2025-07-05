@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
 import os
-from gtts import gTTS
 import yt_dlp
 from faster_whisper import WhisperModel
 import requests
@@ -11,12 +10,178 @@ from typing import Dict, Optional
 import google.generativeai as genai
 import urllib3
 from dotenv import load_dotenv
+import base64
+import mimetypes
+import struct
+from google import genai as google_genai
+from google.genai import types
 
 # Load environment variables from .env file
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Suppress SSL warnings when verification is disabled
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# --- GEMINI TTS FUNCTIONS ---
+def save_binary_file(file_name, data):
+    """Save binary audio data to file."""
+    with open(file_name, "wb") as f:
+        f.write(data)
+    print(f"Audio file saved to: {file_name}")
+
+def convert_to_wav(audio_data: bytes, mime_type: str) -> bytes:
+    """Generates a WAV file header for the given audio data and parameters.
+
+    Args:
+        audio_data: The raw audio data as a bytes object.
+        mime_type: Mime type of the audio data.
+
+    Returns:
+        A bytes object representing the WAV file header.
+    """
+    parameters = parse_audio_mime_type(mime_type)
+    bits_per_sample = parameters["bits_per_sample"]
+    sample_rate = parameters["rate"]
+    num_channels = 1
+    data_size = len(audio_data)
+    bytes_per_sample = bits_per_sample // 8
+    block_align = num_channels * bytes_per_sample
+    byte_rate = sample_rate * block_align
+    chunk_size = 36 + data_size  # 36 bytes for header fields before data chunk size
+
+    # http://soundfile.sapp.org/doc/WaveFormat/
+    header = struct.pack(
+        "<4sI4s4sIHHIIHH4sI",
+        b"RIFF",          # ChunkID
+        chunk_size,       # ChunkSize (total file size - 8 bytes)
+        b"WAVE",          # Format
+        b"fmt ",          # Subchunk1ID
+        16,               # Subchunk1Size (16 for PCM)
+        1,                # AudioFormat (1 for PCM)
+        num_channels,     # NumChannels
+        sample_rate,      # SampleRate
+        byte_rate,        # ByteRate
+        block_align,      # BlockAlign
+        bits_per_sample,  # BitsPerSample
+        b"data",          # Subchunk2ID
+        data_size         # Subchunk2Size (size of audio data)
+    )
+    return header + audio_data
+
+def parse_audio_mime_type(mime_type: str) -> dict[str, int | None]:
+    """Parses bits per sample and rate from an audio MIME type string.
+
+    Assumes bits per sample is encoded like "L16" and rate as "rate=xxxxx".
+
+    Args:
+        mime_type: The audio MIME type string (e.g., "audio/L16;rate=24000").
+
+    Returns:
+        A dictionary with "bits_per_sample" and "rate" keys. Values will be
+        integers if found, otherwise None.
+    """
+    bits_per_sample = 16
+    rate = 24000
+
+    # Extract rate from parameters
+    parts = mime_type.split(";")
+    for param in parts: # Skip the main type part
+        param = param.strip()
+        if param.lower().startswith("rate="):
+            try:
+                rate_str = param.split("=", 1)[1]
+                rate = int(rate_str)
+            except (ValueError, IndexError):
+                # Handle cases like "rate=" with no value or non-integer value
+                pass # Keep rate as default
+        elif param.startswith("audio/L"):
+            try:
+                bits_per_sample = int(param.split("L", 1)[1])
+            except (ValueError, IndexError):
+                pass # Keep bits_per_sample as default if conversion fails
+
+    return {"bits_per_sample": bits_per_sample, "rate": rate}
+
+def generate_podcast_audio_with_gemini(script_text: str, output_path: str, api_key: str) -> bool:
+    """
+    Generate podcast audio using Gemini TTS with Puck voice.
+    
+    Args:
+        script_text: The text script to convert to audio
+        output_path: The path to save the output audio file
+        api_key: Gemini API key
+        
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        print("🎤 Generating podcast audio with Gemini TTS (Puck voice)...")
+        
+        client = google_genai.Client(api_key=api_key)
+        model = "gemini-2.5-flash-preview-tts"
+        
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=script_text),
+                ],
+            ),
+        ]
+        
+        generate_content_config = types.GenerateContentConfig(
+            temperature=1,
+            response_modalities=["audio"],
+            speech_config=types.SpeechConfig(
+                voice_config=types.VoiceConfig(
+                    prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                        voice_name="Puck"
+                    )
+                ),
+            ),
+        )
+
+        audio_chunks = []
+        for chunk in client.models.generate_content_stream(
+            model=model,
+            contents=contents,
+            config=generate_content_config,
+        ):
+            if (
+                chunk.candidates is None
+                or chunk.candidates[0].content is None
+                or chunk.candidates[0].content.parts is None
+            ):
+                continue
+            
+            if chunk.candidates[0].content.parts[0].inline_data and chunk.candidates[0].content.parts[0].inline_data.data:
+                inline_data = chunk.candidates[0].content.parts[0].inline_data
+                data_buffer = inline_data.data
+                
+                # Convert to WAV if needed
+                if inline_data.mime_type != "audio/wav":
+                    data_buffer = convert_to_wav(inline_data.data, inline_data.mime_type)
+                
+                audio_chunks.append(data_buffer)
+        
+        if audio_chunks:
+            # Combine all audio chunks
+            combined_audio = b''.join(audio_chunks)
+            
+            # Ensure output path has .wav extension for Gemini TTS
+            if output_path.endswith('.mp3'):
+                output_path = output_path.replace('.mp3', '.wav')
+            
+            save_binary_file(output_path, combined_audio)
+            print(f"✅ Gemini TTS audio generated: {os.path.basename(output_path)}")
+            return True
+        else:
+            print("⚠️ No audio data received from Gemini TTS")
+            return False
+            
+    except Exception as e:
+        print(f"⚠️ Error generating audio with Gemini TTS: {e}")
+        return False
 
 # --- CONFIGURATION ---
 # Configuration is now loaded from .env file
@@ -28,10 +193,9 @@ FFMPEG_PATH = os.getenv('FFMPEG_PATH', '')
 # Whisper model configuration
 WHISPER_MODEL = os.getenv('WHISPER_MODEL', 'tiny.en')
 
-# AssemblyAI Configuration
-ASSEMBLYAI_API_KEY = os.getenv('ASSEMBLYAI_API_KEY', '')
-ASSEMBLYAI_BASE_URL = "https://api.assemblyai.com/v2"
-ENABLE_ASSEMBLYAI_DIARIZATION = os.getenv('ENABLE_ASSEMBLYAI_DIARIZATION', 'True').lower() == 'true'
+# Data Source Configuration
+NEWS_SOURCE_URL = os.getenv('NEWS_SOURCE_URL', 'https://today_arweave.ar.io/')
+GITHUB_FALLBACK_URL = os.getenv('GITHUB_FALLBACK_URL', 'https://raw.githubusercontent.com/ArweaveTeam/arweave-today/main/data/today.json')
 
 # Gemini AI Configuration
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
@@ -260,347 +424,59 @@ def save_script_to_file(script_text: str, output_path: str):
     except Exception as e:
         print(f"An error occurred while saving the transcript: {e}")
 
-def save_script_to_audio(script_text: str, output_path: str, enable_diarization: bool = True):
+def save_script_to_audio(script_text: str, output_path: str):
     """
-    Converts a text script to an audio file using gTTS and optionally processes it with AssemblyAI.
+    Converts a text script to an audio file using Gemini TTS.
 
     Args:
         script_text: The text script to convert.
-        output_path: The path to save the output MP3 file.
-        enable_diarization: Whether to perform speaker diarization analysis.
+        output_path: The path to save the output MP3/WAV file.
     """
     try:
-        print(f"Converting script to audio at: {output_path}")
-        tts = gTTS(text=script_text, lang='en', slow=False)
-        tts.save(output_path)
-        print("Audio file saved successfully.")
+        # Clean the script text for audio generation
+        cleaned_text = clean_script_for_audio(script_text)
         
-        # Perform speaker diarization if enabled and API key is set
-        if (enable_diarization and 
-            ENABLE_ASSEMBLYAI_DIARIZATION and 
-            ASSEMBLYAI_API_KEY and ASSEMBLYAI_API_KEY.strip()):
-            
-            print("\n" + "="*50)
-            print("STARTING SPEAKER DIARIZATION ANALYSIS")
-            print("="*50)
-            
-            processor = AssemblyAIProcessor(ASSEMBLYAI_API_KEY)
-            output_dir = os.path.dirname(output_path)
-            diarization_dir = os.path.join(output_dir, 'diarization_results')
-            os.makedirs(diarization_dir, exist_ok=True)
-            
-            success = processor.process_audio_file(output_path, diarization_dir)
-            if success:
-                print("Speaker diarization analysis completed successfully!")
-            else:
-                print("Speaker diarization analysis failed.")
-        elif enable_diarization and (not ASSEMBLYAI_API_KEY or not ASSEMBLYAI_API_KEY.strip()):
-            print("\nSkipping speaker diarization: AssemblyAI API key not configured")
-            print("To enable diarization, set ASSEMBLYAI_API_KEY in the .env file")
+        print(f"Converting script to audio at: {output_path}")
+        
+        # Try Gemini TTS first if API key is available
+        audio_generated = False
+        if GEMINI_API_KEY and GEMINI_API_KEY.strip():
+            audio_generated = generate_podcast_audio_with_gemini(cleaned_text, output_path, GEMINI_API_KEY)
+        
+        if not audio_generated:
+            print("⚠️ Gemini TTS failed or not available. Please configure GEMINI_API_KEY in .env file.")
+            return
+        
+        print("Audio file saved successfully.")
         
     except Exception as e:
         print(f"An error occurred during text-to-speech conversion: {e}")
 
-def save_script_to_audio_with_gemini(script_text: str, output_path: str, gemini_processor = None, enable_diarization: bool = True):
+def save_script_to_audio_with_gemini(script_text: str, output_path: str, gemini_processor = None):
     """
-    Converts a text script to an audio file using Gemini-enhanced TTS and optionally processes it with AssemblyAI.
+    Converts a text script to an audio file using Gemini TTS.
 
     Args:
         script_text: The text script to convert.
-        output_path: The path to save the output MP3 file.
+        output_path: The path to save the output MP3/WAV file.
         gemini_processor: GeminiScriptProcessor instance for enhanced TTS
-        enable_diarization: Whether to perform speaker diarization analysis.
     """
     try:
         audio_generated = False
         
-        # Try Gemini-enhanced audio generation first
-        if gemini_processor:
-            audio_generated = gemini_processor.generate_audio_with_gemini(script_text, output_path)
+        # Try Gemini TTS directly
+        if GEMINI_API_KEY and GEMINI_API_KEY.strip():
+            # Clean the script text for audio generation
+            cleaned_text = clean_script_for_audio(script_text)
+            audio_generated = generate_podcast_audio_with_gemini(cleaned_text, output_path, GEMINI_API_KEY)
         
-        # Fallback to standard gTTS if Gemini fails
+        # Fallback message if Gemini TTS fails
         if not audio_generated:
-            print("🎵 Using standard text-to-speech conversion...")
-            tts = gTTS(text=script_text, lang='en', slow=False)
-            tts.save(output_path)
-            print(f"✅ Audio file saved: {os.path.basename(output_path)}")
-        
-        # Perform speaker diarization if enabled and API key is set
-        if (enable_diarization and 
-            ENABLE_ASSEMBLYAI_DIARIZATION and 
-            ASSEMBLYAI_API_KEY and ASSEMBLYAI_API_KEY.strip()):
-            
-            print("\n" + "="*50)
-            print("STARTING SPEAKER DIARIZATION ANALYSIS")
-            print("="*50)
-            
-            processor = AssemblyAIProcessor(ASSEMBLYAI_API_KEY)
-            output_dir = os.path.dirname(output_path)
-            diarization_dir = os.path.join(output_dir, 'diarization_results')
-            os.makedirs(diarization_dir, exist_ok=True)
-            
-            success = processor.process_audio_file(output_path, diarization_dir)
-            if success:
-                print("Speaker diarization analysis completed successfully!")
-            else:
-                print("Speaker diarization analysis failed.")
-        elif enable_diarization and (not ASSEMBLYAI_API_KEY or not ASSEMBLYAI_API_KEY.strip()):
-            print("\nSkipping speaker diarization: AssemblyAI API key not configured")
-            print("To enable diarization, set ASSEMBLYAI_API_KEY in the .env file")
+            print("⚠️ Gemini TTS failed or not available. Please configure GEMINI_API_KEY in .env file.")
+            return
         
     except Exception as e:
         print(f"An error occurred during text-to-speech conversion: {e}")
-
-class AssemblyAIProcessor:
-    """
-    Handles AssemblyAI speaker diarization processing integrated into podcast generation.
-    """
-    
-    def __init__(self, api_key: str):
-        """
-        Initialize the AssemblyAI processor.
-        
-        Args:
-            api_key: Your AssemblyAI API key
-        """
-        self.api_key = api_key
-        self.headers = {
-            "authorization": api_key,
-            "content-type": "application/json"
-        }
-        
-    def upload_file(self, file_path: str) -> Optional[str]:
-        """
-        Upload an audio file to AssemblyAI and get the upload URL.
-        
-        Args:
-            file_path: Path to the audio file to upload
-            
-        Returns:
-            The upload URL or None if upload failed
-        """
-        try:
-            print(f"Uploading {os.path.basename(file_path)} to AssemblyAI...")
-            
-            with open(file_path, 'rb') as f:
-                upload_response = requests.post(
-                    f"{ASSEMBLYAI_BASE_URL}/upload",
-                    headers={"authorization": self.api_key},
-                    data=f
-                )
-            
-            if upload_response.status_code == 200:
-                upload_url = upload_response.json()['upload_url']
-                print(f"File uploaded successfully.")
-                return upload_url
-            else:
-                print(f"Upload failed: {upload_response.status_code} - {upload_response.text}")
-                return None
-                
-        except Exception as e:
-            print(f"Error uploading file: {e}")
-            return None
-    
-    def submit_transcription_job(self, audio_url: str) -> Optional[str]:
-        """
-        Submit a transcription job with speaker diarization.
-        
-        Args:
-            audio_url: The URL of the uploaded audio file
-            
-        Returns:
-            The transcription job ID or None if submission failed
-        """
-        try:
-            transcript_request = {
-                "audio_url": audio_url,
-                "speaker_labels": True,
-                "speakers_expected": 2,
-                "language_code": "en_us",
-                "punctuate": True,
-                "format_text": True,
-                "dual_channel": False,
-                "auto_highlights": True,
-                "sentiment_analysis": True,
-                "entity_detection": True
-            }
-            
-            print("Starting speaker diarization analysis...")
-            
-            response = requests.post(
-                f"{ASSEMBLYAI_BASE_URL}/transcript",
-                headers=self.headers,
-                json=transcript_request
-            )
-            
-            if response.status_code == 200:
-                job_id = response.json()['id']
-                print(f"Diarization job submitted. Job ID: {job_id}")
-                return job_id
-            else:
-                print(f"Job submission failed: {response.status_code} - {response.text}")
-                return None
-                
-        except Exception as e:
-            print(f"Error submitting transcription job: {e}")
-            return None
-    
-    def get_transcription_result(self, job_id: str, poll_interval: int = 5) -> Optional[Dict]:
-        """
-        Poll for transcription results until completed.
-        
-        Args:
-            job_id: The transcription job ID
-            poll_interval: How often to check for completion (seconds)
-            
-        Returns:
-            The complete transcription result or None if failed
-        """
-        try:
-            print(f"Processing speaker diarization (this may take 1-3 minutes)...")
-            
-            while True:
-                response = requests.get(
-                    f"{ASSEMBLYAI_BASE_URL}/transcript/{job_id}",
-                    headers=self.headers
-                )
-                
-                if response.status_code != 200:
-                    print(f"Error getting results: {response.status_code} - {response.text}")
-                    return None
-                
-                result = response.json()
-                status = result['status']
-                
-                if status == 'completed':
-                    print("Speaker diarization completed successfully!")
-                    return result
-                elif status == 'error':
-                    print(f"Diarization failed: {result.get('error', 'Unknown error')}")
-                    return None
-                else:
-                    print(f"Status: {status}... waiting {poll_interval} seconds")
-                    time.sleep(poll_interval)
-                    
-        except Exception as e:
-            print(f"Error getting transcription results: {e}")
-            return None
-    
-    def format_diarization_output(self, result: Dict) -> str:
-        """
-        Format the speaker diarization results into a readable format.
-        
-        Args:
-            result: The complete transcription result from AssemblyAI
-            
-        Returns:
-            Formatted text with speaker labels
-        """
-        if not result.get('utterances'):
-            return str(result.get('text', 'No transcription available'))
-        
-        formatted_lines = []
-        formatted_lines.append("=== SPEAKER DIARIZATION RESULTS ===\n")
-        
-        for utterance in result['utterances']:
-            speaker = str(utterance.get('speaker', 'Unknown'))
-            text = utterance.get('text')
-            if text is None:
-                text = ''
-            else:
-                text = str(text)
-            confidence = utterance.get('confidence', 0)
-            if confidence is None:
-                confidence = 0
-            start = utterance.get('start', 0)
-            end = utterance.get('end', 0)
-            try:
-                start = float(start) / 1000
-            except Exception:
-                start = 0.0
-            try:
-                end = float(end) / 1000
-            except Exception:
-                end = 0.0
-            formatted_lines.append(
-                f"Speaker {speaker} ({start:.1f}s - {end:.1f}s) [confidence: {confidence:.2f}]:\n{text}\n"
-            )
-        
-        # Add summary information
-        if 'summary' in result and result['summary']:
-            formatted_lines.append("\n=== AUTO-GENERATED SUMMARY ===")
-            formatted_lines.append(str(result['summary']))
-        
-        # Add sentiment analysis if available
-        if 'sentiment_analysis_results' in result and result['sentiment_analysis_results']:
-            formatted_lines.append("\n=== SENTIMENT ANALYSIS ===")
-            for sentiment in result['sentiment_analysis_results']:
-                s_text = sentiment.get('text')
-                if s_text is None:
-                    s_text = ''
-                else:
-                    s_text = str(s_text)
-                s_text = s_text[:100] + "..."
-                sentiment_label = str(sentiment.get('sentiment', 'NEUTRAL'))
-                s_confidence = sentiment.get('confidence', 0)
-                if s_confidence is None:
-                    s_confidence = 0
-                formatted_lines.append(f"{sentiment_label} ({s_confidence:.2f}): {s_text}")
-        
-        return "\n".join(formatted_lines)
-    
-    def process_audio_file(self, file_path: str, output_dir: str) -> bool:
-        """
-        Process an audio file through the complete AssemblyAI pipeline.
-        
-        Args:
-            file_path: Path to the audio file to process
-            output_dir: Directory to save the results
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            # Step 1: Upload file
-            upload_url = self.upload_file(file_path)
-            if not upload_url:
-                return False
-            
-            # Step 2: Submit transcription job
-            job_id = self.submit_transcription_job(upload_url)
-            if not job_id:
-                return False
-            
-            # Step 3: Get results
-            result = self.get_transcription_result(job_id)
-            if not result:
-                return False
-            
-            # Step 4: Format and save results
-            formatted_output = self.format_diarization_output(result)
-            
-            # Create output filename
-            base_name = os.path.splitext(os.path.basename(file_path))[0]
-            output_file = os.path.join(output_dir, f"{base_name}_diarization.txt")
-            json_output_file = os.path.join(output_dir, f"{base_name}_diarization.json")
-            
-            # Save formatted text output
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(formatted_output)
-            
-            # Save raw JSON output
-            with open(json_output_file, 'w', encoding='utf-8') as f:
-                json.dump(result, f, indent=2, ensure_ascii=False)
-            
-            print(f"Diarization results saved:")
-            print(f"  - Text: {os.path.basename(output_file)}")
-            print(f"  - JSON: {os.path.basename(json_output_file)}")
-            
-            return True
-            
-        except Exception as e:
-            print(f"Error processing diarization for {file_path}: {e}")
-            return False
 
 class GeminiScriptProcessor:
     """
@@ -656,11 +532,14 @@ GUIDELINES:
 8. Include natural pauses and emphasis cues with punctuation
 9. Keep segments concise and engaging
 10. Maintain the technical accuracy while improving readability
+11. AVOID stage directions, music cues, or formatting elements that shouldn't be read aloud
+12. Don't include text like "(Intro Music)", "**(Host:**", "---", or similar formatting
+13. Focus on spoken content only - what the host would actually say
 
 RAW CONTENT:
 {raw_content}
 
-Generate a professional podcast script that flows naturally when spoken aloud. Focus on making it sound conversational and engaging for listeners interested in Arweave and decentralized technologies.
+Generate a professional podcast script that flows naturally when spoken aloud. Focus on making it sound conversational and engaging for listeners interested in Arweave and decentralized technologies. Output only the spoken content without any stage directions or formatting elements.
 """
 
             response = self.model.generate_content(prompt)
@@ -691,6 +570,9 @@ Generate a professional podcast script that flows naturally when spoken aloud. F
         try:
             print("🎤 Generating podcast audio with Gemini AI (Puck voice)...")
             
+            # Clean the script text for audio generation first
+            cleaned_text = clean_script_for_audio(script_text)
+            
             # Prepare the text for natural, conversational TTS with Puck personality
             enhanced_prompt = f"""
 Transform this podcast script to sound natural and conversational like "Puck" - a friendly, enthusiastic but not overly excited tech podcaster. Make it sound human and engaging:
@@ -710,11 +592,12 @@ OPTIMIZATION FOR TTS:
 4. Include natural emphasis with capitalization or punctuation
 5. Make transitions sound conversational and smooth
 6. Add breathing room between sections
+7. Remove any remaining stage directions, formatting marks, or non-speech elements
 
 Original script:
-{script_text}
+{cleaned_text}
 
-Return the Puck-optimized, natural-sounding version:
+Return the Puck-optimized, natural-sounding version ready for text-to-speech:
 """
             
             response = self.model.generate_content(enhanced_prompt)
@@ -723,15 +606,12 @@ Return the Puck-optimized, natural-sounding version:
                 optimized_text = response.text.strip()
                 print("✅ Script optimized for natural Puck voice")
                 
-                # Use gTTS with the optimized text and slower speed for more natural delivery
-                print("🎵 Converting to natural audio with Puck personality...")
-                tts = gTTS(text=optimized_text, lang='en', slow=True)  # Slower for more natural delivery
-                tts.save(output_path)
-                print(f"✅ Natural Puck-voice audio saved to: {os.path.basename(output_path)}")
-                return True
+                # Use Gemini TTS with the optimized text
+                print("🎵 Converting to natural audio with Gemini TTS...")
+                return generate_podcast_audio_with_gemini(optimized_text, output_path, self.api_key)
             else:
-                print("⚠️ Failed to optimize script for Puck voice, falling back to standard TTS")
-                return False
+                print("⚠️ Failed to optimize script for Puck voice, using original text with Gemini TTS")
+                return generate_podcast_audio_with_gemini(cleaned_text, output_path, self.api_key)
                 
         except Exception as e:
             print(f"⚠️ Error generating audio with Gemini: {e}")
@@ -760,18 +640,6 @@ def test_integrations():
     """
     print("Testing API integrations...")
     
-    # Test AssemblyAI
-    assemblyai_available = False
-    if ASSEMBLYAI_API_KEY and ASSEMBLYAI_API_KEY.strip():
-        try:
-            processor = AssemblyAIProcessor(ASSEMBLYAI_API_KEY)
-            print("✅ AssemblyAI processor initialized successfully")
-            assemblyai_available = True
-        except Exception as e:
-            print(f"❌ AssemblyAI processor initialization failed: {e}")
-    else:
-        print("⚠️ AssemblyAI API key not configured")
-    
     # Test Gemini
     gemini_available = False
     if GEMINI_API_KEY and GEMINI_API_KEY.strip():
@@ -787,18 +655,21 @@ def test_integrations():
     else:
         print("⚠️ Gemini API key not configured")
     
-    return assemblyai_available, gemini_available
+    return gemini_available
 
-def fetch_online_news_data(url: str = "https://today_arweave.ar.io/") -> dict:
+def fetch_online_news_data(url: str = None) -> dict:
     """
     Fetches the latest Arweave Today JSON data from the online source.
     
     Args:
-        url: The URL to fetch the JSON data from.
+        url: The URL to fetch the JSON data from. If None, uses NEWS_SOURCE_URL from env.
 
     Returns:
         A dictionary containing the news data, or None if an error occurs.
     """
+    if url is None:
+        url = NEWS_SOURCE_URL
+        
     try:
         print(f"🌐 Fetching latest news data from: {url}")
         
@@ -826,7 +697,7 @@ def fetch_online_news_data(url: str = "https://today_arweave.ar.io/") -> dict:
                 url.rstrip('/') + '/data.json',
                 url.rstrip('/') + '/today.json',
                 url.rstrip('/') + '/api/today',
-                'https://raw.githubusercontent.com/ArweaveTeam/arweave-today/main/data/today.json'
+                GITHUB_FALLBACK_URL
             ]
             
             news_data = None
@@ -858,22 +729,17 @@ def fetch_online_news_data(url: str = "https://today_arweave.ar.io/") -> dict:
         print(f"❌ Unexpected error fetching online data: {e}")
         return None
 
-def save_news_data_locally(news_data: dict, file_path: str) -> bool:
+def save_news_data_locally(news_data: dict) -> bool:
     """
-    Saves the fetched news data to a local JSON file for backup/offline use.
-    Also creates a date-based directory structure.
+    Saves the fetched news data to a date-based directory structure.
     
     Args:
         news_data: The news data dictionary to save.
-        file_path: The path where to save the JSON file.
         
     Returns:
         True if successful, False otherwise.
     """
     try:
-        # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        
         # Create date-based directory structure from JSON timestamp
         if 'ts' in news_data:
             timestamp_ms = news_data.get('ts', 0)
@@ -881,21 +747,21 @@ def save_news_data_locally(news_data: dict, file_path: str) -> bool:
             date_folder = pub_date.strftime('%d-%m-%Y')
             
             # Create date-based directory in data folder
-            base_dir = os.path.dirname(os.path.dirname(file_path))  # Go up to project root
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            base_dir = os.path.dirname(script_dir)  # Go up to project root
             date_dir = os.path.join(base_dir, 'data', date_folder)
             os.makedirs(date_dir, exist_ok=True)
             
-            # Save a copy in the date-based directory
+            # Save in the date-based directory
             date_file_path = os.path.join(date_dir, 'today.json')
             with open(date_file_path, 'w', encoding='utf-8') as f:
                 json.dump(news_data, f, indent=2, ensure_ascii=False)
             print(f"📅 News data saved in date directory: {date_folder}/today.json")
-        
-        # Save the regular backup file
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(news_data, f, indent=2, ensure_ascii=False)
-        print(f"💾 News data saved locally: {os.path.basename(file_path)}")
-        return True
+            return True
+        else:
+            print("⚠️ No timestamp found in news data, cannot create date-based directory")
+            return False
+            
     except Exception as e:
         print(f"⚠️ Could not save news data locally: {e}")
         return False
@@ -911,7 +777,7 @@ def get_user_choice_for_data_source() -> str:
     print("📊 DATA SOURCE SELECTION")
     print("="*50)
     print("Choose your data source:")
-    print("1. 🌐 Online (fetch latest from today_arweave.ar.io)")
+    print("1. 🌐 Online (fetch latest from news source)")
     print("2. 📁 Local (use local today.json file)")
     print("3. 🔄 Auto (try online first, fallback to local)")
     
@@ -943,15 +809,14 @@ def load_news_data_smart(script_dir: str, user_choice: str = "auto") -> dict:
         A dictionary containing the news data, or None if all sources fail.
     """
     local_file_path = os.path.join(script_dir, '..', 'data', 'today.json')
-    backup_file_path = os.path.join(script_dir, '..', 'data', 'today_backup.json')
     
     if user_choice == "online":
         # User specifically wants online data
         print("🌐 Fetching online data as requested...")
         news_data = fetch_online_news_data()
         if news_data:
-            # Save a backup copy
-            save_news_data_locally(news_data, backup_file_path)
+            # Save to date-based directory
+            save_news_data_locally(news_data)
             return news_data
         else:
             print("❌ Failed to fetch online data.")
@@ -965,11 +830,13 @@ def load_news_data_smart(script_dir: str, user_choice: str = "auto") -> dict:
                         print("✅ Using local data file.")
                         return local_data
                     else:
-                        print("⚠️ Local file also failed, trying backup...")
-                        backup_data = load_news_data(backup_file_path)
-                        if backup_data:
-                            print("✅ Using backup data file.")
-                            return backup_data
+                        print("⚠️ Local file also failed, trying most recent date directory...")
+                        recent_file = get_most_recent_date_directory(script_dir)
+                        if recent_file:
+                            recent_data = load_news_data(recent_file)
+                            if recent_data:
+                                print("✅ Using most recent date directory data.")
+                                return recent_data
             except KeyboardInterrupt:
                 print("\n🛑 Operation cancelled.")
             return None
@@ -977,7 +844,19 @@ def load_news_data_smart(script_dir: str, user_choice: str = "auto") -> dict:
     elif user_choice == "local":
         # User specifically wants local data
         print("📁 Using local data as requested...")
-        return load_news_data(local_file_path)
+        local_data = load_news_data(local_file_path)
+        if local_data:
+            return local_data
+        else:
+            # Try most recent date directory as fallback
+            print("⚠️ Standard local file not found, trying most recent date directory...")
+            recent_file = get_most_recent_date_directory(script_dir)
+            if recent_file:
+                recent_data = load_news_data(recent_file)
+                if recent_data:
+                    print("✅ Using most recent date directory data.")
+                    return recent_data
+            return None
         
     else:  # user_choice == "auto"
         # Try online first, fallback to local
@@ -985,8 +864,8 @@ def load_news_data_smart(script_dir: str, user_choice: str = "auto") -> dict:
         news_data = fetch_online_news_data()
         
         if news_data:
-            # Online successful - save backup and use it
-            save_news_data_locally(news_data, backup_file_path)
+            # Online successful - save to date directory and use it
+            save_news_data_locally(news_data)
             return news_data
         else:
             # Online failed - try local file
@@ -997,16 +876,105 @@ def load_news_data_smart(script_dir: str, user_choice: str = "auto") -> dict:
                 print("✅ Using local data file.")
                 return local_data
             else:
-                # Local also failed - try backup
-                print("⚠️ Local file failed, trying backup file...")
-                backup_data = load_news_data(backup_file_path)
+                # Local also failed - try most recent date directory
+                print("⚠️ Local file failed, trying most recent date directory...")
+                recent_file = get_most_recent_date_directory(script_dir)
                 
-                if backup_data:
-                    print("✅ Using backup data file.")
-                    return backup_data
+                if recent_file:
+                    recent_data = load_news_data(recent_file)
+                    if recent_data:
+                        print("✅ Using most recent date directory data.")
+                        return recent_data
                 else:
                     print("❌ All data sources failed.")
                     return None
+
+def get_most_recent_date_directory(script_dir: str) -> str:
+    """
+    Finds the most recent date directory in the data folder.
+    
+    Args:
+        script_dir: Directory where the script is located.
+        
+    Returns:
+        Path to the most recent today.json file, or None if not found.
+    """
+    try:
+        data_dir = os.path.join(script_dir, '..', 'data')
+        if not os.path.exists(data_dir):
+            return None
+            
+        # Get all directories that match the date format
+        date_dirs = []
+        for item in os.listdir(data_dir):
+            item_path = os.path.join(data_dir, item)
+            if os.path.isdir(item_path):
+                # Check if it matches DD-MM-YYYY format
+                try:
+                    datetime.strptime(item, '%d-%m-%Y')
+                    today_json_path = os.path.join(item_path, 'today.json')
+                    if os.path.exists(today_json_path):
+                        date_dirs.append((item, today_json_path))
+                except ValueError:
+                    continue
+        
+        if not date_dirs:
+            return None
+            
+        # Sort by date (newest first)
+        date_dirs.sort(key=lambda x: datetime.strptime(x[0], '%d-%m-%Y'), reverse=True)
+        most_recent = date_dirs[0][1]
+        print(f"📅 Found most recent data: {date_dirs[0][0]}/today.json")
+        return most_recent
+        
+    except Exception as e:
+        print(f"⚠️ Error finding recent date directory: {e}")
+        return None
+
+def clean_script_for_audio(script_text: str) -> str:
+    """
+    Cleans the script text for audio generation by removing stage directions, 
+    formatting elements, and other text that shouldn't be read aloud.
+    
+    Args:
+        script_text: The raw script text with formatting elements
+        
+    Returns:
+        Cleaned text suitable for text-to-speech conversion
+    """
+    import re
+    
+    # Remove lines with stage directions in double asterisks
+    script_text = re.sub(r'\*\*.*?\*\*', '', script_text)
+    
+    # Remove separator lines with dashes
+    script_text = re.sub(r'^-{3,}.*$', '', script_text, flags=re.MULTILINE)
+    script_text = re.sub(r'^={3,}.*$', '', script_text, flags=re.MULTILINE)
+    
+    # Remove transition sound effect markers
+    script_text = re.sub(r'\(.*?sound effect.*?\)', '', script_text, flags=re.IGNORECASE)
+    script_text = re.sub(r'\(.*?transition.*?\)', '', script_text, flags=re.IGNORECASE)
+    script_text = re.sub(r'\(.*?music.*?\)', '', script_text, flags=re.IGNORECASE)
+    
+    # Remove other parenthetical stage directions
+    script_text = re.sub(r'\(.*?fades? in.*?\)', '', script_text, flags=re.IGNORECASE)
+    script_text = re.sub(r'\(.*?fades? out.*?\)', '', script_text, flags=re.IGNORECASE)
+    script_text = re.sub(r'\(.*?fades? up.*?\)', '', script_text, flags=re.IGNORECASE)
+    script_text = re.sub(r'\(.*?plays to end.*?\)', '', script_text, flags=re.IGNORECASE)
+    
+    # Remove host labels and formatting
+    script_text = re.sub(r'^\*\*Host:\*\*\s*', '', script_text, flags=re.MULTILINE)
+    script_text = re.sub(r'^Host:\s*', '', script_text, flags=re.MULTILINE)
+    
+    # Clean up multiple newlines and whitespace
+    script_text = re.sub(r'\n\s*\n\s*\n+', '\n\n', script_text)
+    script_text = re.sub(r'^\s+', '', script_text, flags=re.MULTILINE)
+    script_text = re.sub(r'\s+$', '', script_text, flags=re.MULTILINE)
+    
+    # Remove empty lines at start and end
+    script_text = script_text.strip()
+    
+    return script_text
 
 def main():
     """
@@ -1016,7 +984,7 @@ def main():
     print("="*50)
     
     # Test API integrations
-    assemblyai_available, gemini_available = test_integrations()
+    gemini_available = test_integrations()
     
     if gemini_available:
         print("🤖 AI script enhancement will be enabled")
