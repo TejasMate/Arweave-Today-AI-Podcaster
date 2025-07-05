@@ -5,8 +5,13 @@ This module handles all interactions with Google's Gemini AI API.
 """
 
 import google.generativeai as genai
-from google import genai as google_genai
-from google.genai import types
+try:
+    from google import genai as google_genai
+    from google.genai import types
+except ImportError:
+    # Fallback if the new genai client is not available
+    google_genai = None
+    types = None
 from typing import Optional
 import asyncio
 
@@ -32,9 +37,14 @@ class GeminiService:
         """Initialize the Gemini client."""
         try:
             genai.configure(api_key=self.api_key)
-            self.client = google_genai.Client(api_key=self.api_key)
+            if google_genai is not None:
+                self.client = google_genai.Client(api_key=self.api_key)
+            else:
+                print("⚠️ Gemini TTS client not available (google.genai not installed)")
+                self.client = None
         except Exception as e:
             print(f"⚠️ Error initializing Gemini client: {e}")
+            self.client = None
     
     def test_connection(self) -> bool:
         """
@@ -145,6 +155,10 @@ Format the output as a clean script without stage directions, music cues, or for
                 print("⚠️ Gemini client not initialized")
                 return False
             
+            if types is None:
+                print("⚠️ Gemini TTS types not available (google.genai not properly installed)")
+                return False
+            
             model = "gemini-2.5-flash-preview-tts"
             
             contents = [
@@ -227,7 +241,7 @@ Format the output as a clean script without stage directions, music cues, or for
                 print("⚠️ Gemini client not initialized")
                 return ""
             
-            model = "gemini-2.5-flash-preview"
+            model = "gemini-2.5-flash"
             
             # Read audio file data
             with open(file_path, "rb") as audio_file:
