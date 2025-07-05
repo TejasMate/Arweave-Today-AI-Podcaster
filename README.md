@@ -2,12 +2,12 @@
 
 An intelligent, automated podcast generator that transforms Arweave ecosystem news into professional-quality audio content. This tool fetches the latest news from the Arweave Today feed, transcribes video content, enhances scripts with AI, and generates natural-sounding podcast audio.
 
-## Demo
+## 📺 Demo & Examples
 
+### Web Interface Demo
 https://github.com/user-attachments/assets/49f7d38e-46d8-4c2c-bbe6-96aaec5a4daf
 
-## 🎧 Sample Generated Podcast
-
+### 🎧 Sample Generated Podcast
 Here's an example of what the AI generates - listen to how it transforms raw news into a natural, conversational podcast:
 
 https://github.com/user-attachments/assets/1cabd7e0-a61d-401c-a698-4669f3916abc
@@ -18,35 +18,6 @@ https://github.com/user-attachments/assets/1cabd7e0-a61d-401c-a698-4669f3916abc
 - 🎯 Professional transitions between topics
 - 💡 Technical concepts explained accessibly
 - ⚡ Generated entirely by AI in minutes
-
-## ✨ Features
-
-### 🤖 AI-Powered Content Enhancement
-- **Gemini AI Script Generation**: Transforms raw news content into professional, conversational podcast scripts
-- **Natural Voice Optimization**: Optimizes text for natural "Puck" voice personality with TTS enhancements
-- **Topic Separation**: Automatically organizes content with clear topic boundaries for AI processing
-
-### 🎥 Video Content Processing
-- **YouTube Video Transcription**: Downloads and transcripts embedded videos using Gemini AI
-- **Smart Caching**: Avoids re-processing existing transcripts to save time and bandwidth
-- **Error Handling**: Graceful fallback when video processing fails
-
-### 🌐 Flexible Data Sources
-- **Online Fetching**: Retrieves latest content from `today_arweave.ar.io`
-- **Local Fallback**: Uses local JSON files when online source is unavailable
-- **Smart SSL Handling**: Handles certificate issues automatically
-- **Multiple Endpoint Support**: Tries various JSON endpoints for robust data retrieval
-
-### 🎵 Professional Audio Generation
-- **Gemini TTS**: Uses AI-optimized text for natural speech synthesis with "Puck" voice
-- **Structured Transcription**: Audio-to-text transcription with timestamps and speaker identification
-- **Multiple Output Formats**: Generates both raw and enhanced scripts plus final audio
-
-### 🔧 Developer-Friendly
-- **Environment Configuration**: Secure API key management with `.env` files
-- **Modular Architecture**: Clean, maintainable code structure
-- **Comprehensive Logging**: Detailed progress tracking and error reporting
-- **Easy Customization**: Configurable models, voices, and processing options
 
 ## 🚀 Quick Start
 
@@ -123,46 +94,32 @@ https://github.com/user-attachments/assets/1cabd7e0-a61d-401c-a698-4669f3916abc
    # Then open http://localhost:5000 in your browser
    ```
 
+## ⚙️ Configuration
+
+### Environment Variables (`.env`)
+
+```env
+# API Keys
+GEMINI_API_KEY=your_gemini_key_here
+
+# Feature Toggles
+ENABLE_GEMINI_SCRIPT_GENERATION=True
+ENABLE_GEMINI_TTS=True
+
+# Optional Settings
+FFMPEG_PATH=
+```
+
+### API Key Setup
+
+#### Google Gemini AI (Required)
+1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Create a new API key
+3. Add to `.env` as `GEMINI_API_KEY`
+
 ## 🎮 Usage
 
-### Interactive Mode
-Run without arguments to use the interactive data source selection:
-```bash
-python main.py
-```
-You'll be prompted to choose:
-1. 🌐 Online (fetch latest from news source)
-2. 📁 Local (use local today.json file)  
-3. 🔄 Auto (try online first, fallback to local)
-
-### Command Line Mode
-Directly specify a JSON file for immediate processing:
-
-```bash
-# Process a specific JSON file
-python main.py -f "data/today.json"
-
-# Process a dated JSON file
-python main.py -f "data/04-07-2025/today.json"
-
-# Using full path
-python main.py --file "/path/to/your/news-data.json"
-
-# Short form
-python main.py -f "path/to/file.json"
-```
-
-### Command Line Options
-```bash
-python main.py --help
-```
-
-**Available options:**
-- `-f, --file PATH` - Path to JSON file containing news data
-- `-h, --help` - Show help message
-- `--version` - Show version information
-
-### 🌐 Web Interface
+### 🌐 Web Interface (Recommended)
 Access the modern web interface for easy podcast generation:
 
 ```bash
@@ -198,6 +155,45 @@ nohup python web_app.py > web_app.log 2>&1 &
 - Flask web framework (automatically installed)
 - Modern web browser with JavaScript enabled
 
+### 💻 Command Line Interface
+
+#### Interactive Mode
+Run without arguments to use the interactive data source selection:
+```bash
+python main.py
+```
+You'll be prompted to choose:
+1. 🌐 Online (fetch latest from news source)
+2. 📁 Local (use local today.json file)  
+3. 🔄 Auto (try online first, fallback to local)
+
+#### Direct File Mode
+Directly specify a JSON file for immediate processing:
+
+```bash
+# Process a specific JSON file
+python main.py -f "data/today.json"
+
+# Process a dated JSON file
+python main.py -f "data/04-07-2025/today.json"
+
+# Using full path
+python main.py --file "/path/to/your/news-data.json"
+
+# Short form
+python main.py -f "path/to/file.json"
+```
+
+#### Command Line Options
+```bash
+python main.py --help
+```
+
+**Available options:**
+- `-f, --file PATH` - Path to JSON file containing news data
+- `-h, --help` - Show help message
+- `--version` - Show version information
+
 ### Examples
 ```bash
 # Interactive mode (recommended for first time)
@@ -210,29 +206,6 @@ python main.py -f "data/04-07-2025/today.json"
 python main.py --file "my-custom-news.json"
 ```
 
-## ⚙️ Configuration
-
-### Environment Variables (`.env`)
-
-```env
-# API Keys
-GEMINI_API_KEY=your_gemini_key_here
-
-# Feature Toggles
-ENABLE_GEMINI_SCRIPT_GENERATION=True
-ENABLE_GEMINI_TTS=True
-
-# Optional Settings
-FFMPEG_PATH=
-```
-
-### API Key Setup
-
-#### Google Gemini AI (Required)
-1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
-2. Create a new API key
-3. Add to `.env` as `GEMINI_API_KEY`
-
 ## 📊 Data Source Options
 
 When running the script, you'll be prompted to choose a data source:
@@ -241,7 +214,72 @@ When running the script, you'll be prompted to choose a data source:
 2. **📁 Local** - Use local `data/today.json` file
 3. **🔄 Auto** - Try online first, fallback to local (recommended)
 
-## 📁 Project Structure
+## ✨ Features
+
+### 🤖 AI-Powered Content Enhancement
+- **Gemini AI Script Generation**: Transforms raw news content into professional, conversational podcast scripts
+- **Natural Voice Optimization**: Optimizes text for natural "Puck" voice personality with TTS enhancements
+- **Topic Separation**: Automatically organizes content with clear topic boundaries for AI processing
+
+### 🎥 Video Content Processing
+- **YouTube Video Transcription**: Downloads and transcripts embedded videos using Gemini AI
+- **Smart Caching**: Avoids re-processing existing transcripts to save time and bandwidth
+- **Error Handling**: Graceful fallback when video processing fails
+
+### 🌐 Flexible Data Sources
+- **Online Fetching**: Retrieves latest content from `today_arweave.ar.io`
+- **Local Fallback**: Uses local JSON files when online source is unavailable
+- **Smart SSL Handling**: Handles certificate issues automatically
+- **Multiple Endpoint Support**: Tries various JSON endpoints for robust data retrieval
+
+### 🎵 Professional Audio Generation
+- **Gemini TTS**: Uses AI-optimized text for natural speech synthesis with "Puck" voice
+- **Structured Transcription**: Audio-to-text transcription with timestamps and speaker identification
+- **Multiple Output Formats**: Generates both raw and enhanced scripts plus final audio
+
+### 🔧 Developer-Friendly
+- **Environment Configuration**: Secure API key management with `.env` files
+- **Modular Architecture**: Clean, maintainable code structure
+- **Comprehensive Logging**: Detailed progress tracking and error reporting
+- **Easy Customization**: Configurable models, voices, and processing options
+
+## 🎯 Output Files
+
+### Generated Content
+- **Raw Script** (`*-raw.txt`) - Combined news and video transcripts with topic markers
+- **Enhanced Script** (`*.txt`) - AI-polished, professional podcast script
+- **Audio File** (`*.mp3`) - Final podcast audio with natural Puck voice
+- **Video Transcripts** (`topic_*_transcript.txt`) - Individual video transcriptions
+
+### File Naming Convention
+All output files use the format: `ArweaveToday-YYYY-MM-DD.*`
+
+## 🔍 Features Deep Dive
+
+### AI Script Enhancement
+The Gemini AI processor transforms raw content into professional podcast scripts by:
+- Creating natural, conversational flow
+- Adding clear transitions between topics
+- Explaining technical terms accessibly
+- Maintaining enthusiastic but professional tone
+- Optimizing for audio delivery
+
+### Voice Personality: "Puck"
+The AI optimizes scripts for a friendly, enthusiastic tech podcaster named "Puck":
+- Conversational and warm tone
+- Natural speech patterns
+- Professional but approachable delivery
+- Uses natural filler words occasionally
+- Explains concepts like talking to a friend
+
+### Smart Video Processing
+- Downloads audio from embedded YouTube videos
+- Transcribes using Gemini AI with structured timestamps and speaker identification
+- Saves individual transcripts per topic
+- Skips re-processing existing transcripts
+- Handles errors gracefully with fallback content
+
+## � Project Structure
 
 ```
 arweave-today-ai-podcaster/
@@ -293,50 +331,14 @@ arweave-today-ai-podcaster/
 └── README.md                      # This file
 ```
 
-## 🎯 Output Files
-
-### Generated Content
-- **Raw Script** (`*-raw.txt`) - Combined news and video transcripts with topic markers
-- **Enhanced Script** (`*.txt`) - AI-polished, professional podcast script
-- **Audio File** (`*.mp3`) - Final podcast audio with natural Puck voice
-- **Video Transcripts** (`topic_*_transcript.txt`) - Individual video transcriptions
-
-### File Naming Convention
-All output files use the format: `ArweaveToday-YYYY-MM-DD.*`
-
-## 🔍 Features Deep Dive
-
-### AI Script Enhancement
-The Gemini AI processor transforms raw content into professional podcast scripts by:
-- Creating natural, conversational flow
-- Adding clear transitions between topics
-- Explaining technical terms accessibly
-- Maintaining enthusiastic but professional tone
-- Optimizing for audio delivery
-
-### Voice Personality: "Puck"
-The AI optimizes scripts for a friendly, enthusiastic tech podcaster named "Puck":
-- Conversational and warm tone
-- Natural speech patterns
-- Professional but approachable delivery
-- Uses natural filler words occasionally
-- Explains concepts like talking to a friend
-
-### Smart Video Processing
-- Downloads audio from embedded YouTube videos
-- Transcribes using Gemini AI with structured timestamps and speaker identification
-- Saves individual transcripts per topic
-- Skips re-processing existing transcripts
-- Handles errors gracefully with fallback content
-
-## 🛠️ Advanced Configuration
+## �🛠️ Advanced Configuration & Troubleshooting
 
 ### FFmpeg Configuration
 If FFmpeg is not in your system PATH:
 1. Download FFmpeg from [official site](https://ffmpeg.org/)
 2. Set `FFMPEG_PATH` to the `bin` directory in `.env`
 
-## 🧪 Testing
+### 🧪 Testing
 
 The main script includes built-in API testing:
 
@@ -350,9 +352,7 @@ python main.py
 # Choose option 2 (Local) when prompted
 ```
 
-## 🐛 Troubleshooting
-
-### Common Issues
+### 🐛 Common Issues
 
 **SSL Certificate Errors**
 - The script automatically handles SSL issues with fallback mechanisms
@@ -372,7 +372,7 @@ python main.py
 ### Debug Mode
 Add verbose logging by modifying the script or check output files for detailed error information.
 
-## 📝 Dependencies
+## 📝 Dependencies & Technical Details
 
 ### Core Dependencies
 - `google-generativeai` - Gemini AI integration for TTS and transcription
