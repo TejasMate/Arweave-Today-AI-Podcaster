@@ -1,7 +1,19 @@
-gTTS==2.5.1
-pydub==0.25.1
-yt-dlp==2024.7.16
-faster-whisper==1.0.3
-requests==2.31.0
-google-generativeai 
-python-dotenv==1.0.0 
+# Core dependencies
+requests>=2.31.0
+python-dotenv>=1.0.0
+yt-dlp>=2024.7.16
+faster-whisper>=1.0.3
+google-generativeai>=0.8.0
+urllib3>=1.26.0
+
+# Audio processing
+pydub>=0.25.1
+
+# Development dependencies (optional)
+# Install with: pip install -e .[dev]
+# pytest>=6.0
+# pytest-cov>=2.0
+# black>=21.0
+# isort>=5.0
+# flake8>=3.8
+# mypy>=0.800 

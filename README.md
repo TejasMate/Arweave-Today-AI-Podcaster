@@ -48,9 +48,14 @@ An intelligent, automated podcast generator that transforms Arweave ecosystem ne
    cd arweave-today-ai-podcaster
    ```
 
-2. **Install dependencies**
+2. **Install the package**
    ```bash
+   # Standard installation
    pip install -r requirements.txt
+   
+   # OR development installation (recommended for contributors)
+   pip install -e .
+   pip install -e .[dev]  # Include development dependencies
    ```
 
 3. **Configure environment**
@@ -61,8 +66,13 @@ An intelligent, automated podcast generator that transforms Arweave ecosystem ne
 
 4. **Run the generator**
    ```bash
-   cd src
-   python podcast_generator.py
+   python main.py
+   
+   # OR if installed as package
+   arweave-podcaster
+   
+   # OR as module
+   python -m arweave_podcaster.core.podcast_generator
    ```
 
 ## ⚙️ Configuration
@@ -107,20 +117,47 @@ When running the script, you'll be prompted to choose a data source:
 
 ```
 arweave-today-ai-podcaster/
-├── src/
-│   └── podcast_generator.py      # Main application
-├── data/
-│   ├── today.json             # Local news data
-│   └── today_backup.json      # Auto-saved backup
-├── output/                    # Generated content
-│   ├── ArweaveToday-YYYY-MM-DD-raw.txt
-│   ├── ArweaveToday-YYYY-MM-DD.txt
-│   ├── ArweaveToday-YYYY-MM-DD.mp3
-│   └── topic_*_video_transcript.txt
-├── .env                       # API configuration
-├── .env.example              # Configuration template
-├── requirements.txt          # Python dependencies
-└── README.md                 # This file
+├── arweave_podcaster/              # Main package
+│   ├── __init__.py                # Package initialization  
+│   ├── core/                      # Core functionality
+│   │   ├── __init__.py
+│   │   └── podcast_generator.py   # Main podcast generator
+│   ├── services/                  # External service integrations
+│   │   ├── __init__.py
+│   │   ├── data_service.py        # News data fetching
+│   │   ├── gemini_service.py      # Gemini AI integration
+│   │   └── video_service.py       # Video transcription
+│   └── utils/                     # Utility functions
+│       ├── __init__.py
+│       ├── audio_utils.py         # Audio processing
+│       ├── config.py              # Configuration management
+│       ├── file_utils.py          # File operations
+│       └── text_utils.py          # Text processing
+├── tests/                         # Test suite
+│   ├── __init__.py
+│   ├── test_config.py
+│   └── test_text_utils.py
+├── scripts/                       # Utility scripts
+│   └── migrate.py                 # Migration helper
+├── docs/                          # Documentation
+│   ├── api_reference.md           # API documentation
+│   └── development.md             # Development guide
+├── data/                          # Data storage (by date)
+│   └── DD-MM-YYYY/
+│       └── today.json
+├── output/                        # Generated content (by date)
+│   └── DD-MM-YYYY/
+│       ├── ArweaveToday-YYYY-MM-DD-raw.txt
+│       ├── ArweaveToday-YYYY-MM-DD.txt
+│       ├── ArweaveToday-YYYY-MM-DD.wav
+│       └── topic_*_video_transcript.txt
+├── main.py                        # CLI entry point
+├── setup.py                       # Package setup (legacy)
+├── pyproject.toml                 # Modern packaging config
+├── requirements.txt               # Dependencies
+├── .env                           # Environment configuration
+├── .env.example                   # Configuration template
+└── README.md                      # This file
 ```
 
 ## 🎯 Output Files
