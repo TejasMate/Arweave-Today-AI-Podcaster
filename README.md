@@ -86,6 +86,57 @@ https://github.com/user-attachments/assets/1cabd7e0-a61d-401c-a698-4669f3916abc
    python -m arweave_podcaster.core.podcast_generator
    ```
 
+## 🎮 Usage
+
+### Interactive Mode
+Run without arguments to use the interactive data source selection:
+```bash
+python main.py
+```
+You'll be prompted to choose:
+1. 🌐 Online (fetch latest from news source)
+2. 📁 Local (use local today.json file)  
+3. 🔄 Auto (try online first, fallback to local)
+
+### Command Line Mode
+Directly specify a JSON file for immediate processing:
+
+```bash
+# Process a specific JSON file
+python main.py -f "data/today.json"
+
+# Process a dated JSON file
+python main.py -f "data/04-07-2025/today.json"
+
+# Using full path
+python main.py --file "/path/to/your/news-data.json"
+
+# Short form
+python main.py -f "path/to/file.json"
+```
+
+### Command Line Options
+```bash
+python main.py --help
+```
+
+**Available options:**
+- `-f, --file PATH` - Path to JSON file containing news data
+- `-h, --help` - Show help message
+- `--version` - Show version information
+
+### Examples
+```bash
+# Interactive mode (recommended for first time)
+python main.py
+
+# Quick generation from existing JSON
+python main.py -f "data/04-07-2025/today.json"
+
+# Process custom JSON file
+python main.py --file "my-custom-news.json"
+```
+
 ## ⚙️ Configuration
 
 ### Environment Variables (`.env`)
