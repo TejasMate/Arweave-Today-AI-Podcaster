@@ -6,17 +6,7 @@ An intelligent, automated podcast generator that transforms Arweave ecosystem ne
 
 Here's an example of what the AI generates - listen to how it transforms raw news into a natural, conversational podcast:
 
-<!-- You can embed your generated podcast audio file here -->
-<!-- Example: -->
-<!-- 
-<audio controls>
-  <source src="path/to/your/generated/podcast.wav" type="audio/wav">
-  <source src="path/to/your/generated/podcast.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
--->
-
-> 🔗 **Live Example**: [Insert link to hosted audio file or GitHub release with sample]
+https://github.com/user-attachments/assets/1cabd7e0-a61d-401c-a698-4669f3916abc
 
 **What you'll hear:**
 - 🎙️ Natural "Puck" voice personality
