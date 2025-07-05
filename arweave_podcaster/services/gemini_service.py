@@ -8,6 +8,7 @@ import google.generativeai as genai
 from google import genai as google_genai
 from google.genai import types
 from typing import Optional
+import asyncio
 
 from ..utils.config import config
 from ..utils.audio_utils import save_binary_file, convert_to_wav, ensure_wav_extension
@@ -208,6 +209,79 @@ Format the output as a clean script without stage directions, music cues, or for
         except Exception as e:
             print(f"⚠️ Error generating audio with Gemini TTS: {e}")
             return False
+    
+    def transcribe_audio_file(self, file_path: str) -> str:
+        """
+        Transcribe an audio file using Gemini AI with structured speaker diarization.
+        
+        Args:
+            file_path: Path to the audio file to transcribe (MP3 format)
+            
+        Returns:
+            Structured transcription text with timestamps and speaker identification
+        """
+        try:
+            print("🎧 Transcribing audio file with Gemini AI (structured format)...")
+            
+            if not self.client:
+                print("⚠️ Gemini client not initialized")
+                return ""
+            
+            model = "gemini-2.5-flash-preview"
+            
+            # Read audio file data
+            with open(file_path, "rb") as audio_file:
+                audio_data = audio_file.read()
+            
+            # Create structured transcription prompt
+            transcription_prompt = """Generate a structured transcript of this audio. Include timestamps and identify speakers.
+
+Expected speakers for Arweave ecosystem content:
+- Host/Presenter (main speaker)
+- Guest/Interviewee (if present)
+
+Format example:
+[00:00] Host: Welcome to today's Arweave update.
+[00:05] Guest: Thanks for having me on the show.
+
+Guidelines:
+- Include timestamps in [MM:SS] format
+- Identify speakers as Host, Guest, or Speaker A/B if names unknown
+- For music or sound effects use: [MM:SS] [MUSIC] or [MM:SS] [SOUND EFFECT]
+- Keep individual segments short and clear
+- End transcript with [END]
+- Use correct spelling and punctuation
+- No markdown formatting (bold/italics)
+- Focus on accuracy and clarity for Arweave/blockchain content
+
+Transcribe the following audio:"""
+            
+            contents = [
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_text(text=transcription_prompt),
+                        types.Part.from_audio(data=audio_data, mime_type="audio/mpeg"),
+                    ],
+                ),
+            ]
+            
+            response = self.client.models.generate_content(
+                model=model,
+                contents=contents,
+            )
+            
+            if response and response.text:
+                transcription = response.text.strip()
+                print("✅ Structured audio transcription completed")
+                return transcription
+            else:
+                print("⚠️ No transcription response from Gemini AI")
+                return ""
+                
+        except Exception as e:
+            print(f"⚠️ Error transcribing audio file with Gemini AI: {e}")
+            return ""
 
 
 # Factory function for creating Gemini service

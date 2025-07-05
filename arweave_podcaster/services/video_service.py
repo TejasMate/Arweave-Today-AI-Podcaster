@@ -126,6 +126,9 @@ class VideoService:
                 'extractaudio': True,
                 'audioformat': 'wav',
                 'audioquality': 0,
+                'socket_timeout': 30,
+                'retries': 3,
+                'fragment_retries': 3,
             }
             
             # Add FFmpeg path if configured
@@ -133,6 +136,12 @@ class VideoService:
                 ydl_opts['ffmpeg_location'] = config.FFMPEG_PATH
             
             print(f"📥 Downloading audio from video...")
+            print(f"🔗 URL: {video_url}")
+            
+            # Special handling for Twitter/X videos
+            if 'twimg.com' in video_url or 'twitter.com' in video_url or 'x.com' in video_url:
+                print("🐦 Detected Twitter/X video - using direct download")
+                return self._download_direct_video(video_url, output_path_base)
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(video_url, download=True)
@@ -149,6 +158,116 @@ class VideoService:
                 
         except Exception as e:
             print(f"⚠️ Error downloading audio: {e}")
+            # Try direct download as fallback
+            if 'twimg.com' in video_url:
+                print("🔄 Trying direct download as fallback...")
+                return self._download_direct_video(video_url, output_path_base)
+            return None
+    
+    def _download_direct_video(self, video_url: str, output_path_base: str) -> Optional[str]:
+        """
+        Download video directly using requests for Twitter/X videos.
+        
+        Args:
+            video_url: Direct video URL
+            output_path_base: Base path for output file
+            
+        Returns:
+            Path to downloaded video file, or None if failed
+        """
+        try:
+            import requests
+            
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            
+            print("📥 Attempting direct video download...")
+            response = requests.get(video_url, headers=headers, timeout=30, stream=True)
+            response.raise_for_status()
+            
+            # Determine file extension from URL or content type
+            if video_url.endswith('.mp4'):
+                ext = 'mp4'
+            elif video_url.endswith('.webm'):
+                ext = 'webm'
+            else:
+                ext = 'mp4'  # Default
+            
+            video_path = f"{output_path_base}.{ext}"
+            
+            # Download the video
+            with open(video_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+            
+            print(f"✅ Video downloaded: {os.path.basename(video_path)}")
+            
+            # Extract audio using FFmpeg directly
+            audio_path = f"{output_path_base}.wav"
+            return self._extract_audio_with_ffmpeg(video_path, audio_path)
+            
+        except Exception as e:
+            print(f"⚠️ Direct download failed: {e}")
+            return None
+    
+    def _extract_audio_with_ffmpeg(self, video_path: str, audio_path: str) -> Optional[str]:
+        """
+        Extract audio from video using FFmpeg.
+        
+        Args:
+            video_path: Path to video file
+            audio_path: Path for output audio file
+            
+        Returns:
+            Path to audio file if successful, None otherwise
+        """
+        try:
+            import subprocess
+            
+            # FFmpeg command to extract audio
+            cmd = [
+                'ffmpeg',
+                '-i', video_path,
+                '-vn',  # No video
+                '-acodec', 'pcm_s16le',  # PCM 16-bit
+                '-ar', '16000',  # Sample rate
+                '-ac', '1',  # Mono
+                '-y',  # Overwrite output file
+                audio_path
+            ]
+            
+            print("🎵 Extracting audio with FFmpeg...")
+            
+            # Run FFmpeg
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            
+            if result.returncode == 0 and os.path.exists(audio_path):
+                print(f"✅ Audio extracted: {os.path.basename(audio_path)}")
+                
+                # Clean up video file
+                try:
+                    os.remove(video_path)
+                    print("🗑️ Cleaned up video file")
+                except:
+                    pass
+                
+                return audio_path
+            else:
+                print(f"⚠️ FFmpeg failed: {result.stderr}")
+                return None
+                
+        except subprocess.TimeoutExpired:
+            print("⚠️ FFmpeg timeout")
+            return None
+        except Exception as e:
+            print(f"⚠️ FFmpeg error: {e}")
             return None
     
     def _transcribe_audio(self, audio_path: str) -> str:

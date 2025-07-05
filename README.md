@@ -12,7 +12,7 @@ An intelligent, automated podcast generator that transforms Arweave ecosystem ne
 - **Topic Separation**: Automatically organizes content with clear topic boundaries for AI processing
 
 ### 🎥 Video Content Processing
-- **YouTube Video Transcription**: Downloads and transcripts embedded videos using Whisper AI
+- **YouTube Video Transcription**: Downloads and transcripts embedded videos using Gemini AI
 - **Smart Caching**: Avoids re-processing existing transcripts to save time and bandwidth
 - **Error Handling**: Graceful fallback when video processing fails
 
@@ -23,8 +23,8 @@ An intelligent, automated podcast generator that transforms Arweave ecosystem ne
 - **Multiple Endpoint Support**: Tries various JSON endpoints for robust data retrieval
 
 ### 🎵 Professional Audio Generation
-- **Gemini-Enhanced TTS**: Uses AI-optimized text for natural speech synthesis
-- **Speaker Diarization**: Optional AssemblyAI speaker analysis for generated audio
+- **Gemini TTS**: Uses AI-optimized text for natural speech synthesis with "Puck" voice
+- **Structured Transcription**: Audio-to-text transcription with timestamps and speaker identification
 - **Multiple Output Formats**: Generates both raw and enhanced scripts plus final audio
 
 ### 🔧 Developer-Friendly
@@ -38,7 +38,7 @@ An intelligent, automated podcast generator that transforms Arweave ecosystem ne
 ### Prerequisites
 - Python 3.8+
 - FFmpeg (for audio processing)
-- API keys for Gemini AI and AssemblyAI (optional)
+- API key for Gemini AI
 
 ### Installation
 
@@ -81,29 +81,22 @@ An intelligent, automated podcast generator that transforms Arweave ecosystem ne
 
 ```env
 # API Keys
-ASSEMBLYAI_API_KEY=your_assemblyai_key_here
 GEMINI_API_KEY=your_gemini_key_here
 
 # Feature Toggles
-ENABLE_ASSEMBLYAI_DIARIZATION=True
 ENABLE_GEMINI_SCRIPT_GENERATION=True
+ENABLE_GEMINI_TTS=True
 
 # Optional Settings
 FFMPEG_PATH=
-WHISPER_MODEL=tiny.en
 ```
 
 ### API Key Setup
 
-#### Google Gemini AI (Required for AI Enhancement)
+#### Google Gemini AI (Required)
 1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
 2. Create a new API key
 3. Add to `.env` as `GEMINI_API_KEY`
-
-#### AssemblyAI (Optional for Speaker Diarization)
-1. Sign up at [AssemblyAI](https://www.assemblyai.com/)
-2. Get your API key from dashboard
-3. Add to `.env` as `ASSEMBLYAI_API_KEY`
 
 ## 📊 Data Source Options
 
@@ -138,7 +131,7 @@ arweave-today-ai-podcaster/
 │   ├── test_config.py
 │   └── test_text_utils.py
 ├── scripts/                       # Utility scripts
-│   └── migrate.py                 # Migration helper
+│   └── setup_dev.sh               # Development setup
 ├── docs/                          # Documentation
 │   ├── api_reference.md           # API documentation
 │   └── development.md             # Development guide
@@ -191,19 +184,12 @@ The AI optimizes scripts for a friendly, enthusiastic tech podcaster named "Puck
 
 ### Smart Video Processing
 - Downloads audio from embedded YouTube videos
-- Transcribes using Whisper AI (configurable models)
+- Transcribes using Gemini AI with structured timestamps and speaker identification
 - Saves individual transcripts per topic
 - Skips re-processing existing transcripts
 - Handles errors gracefully with fallback content
 
 ## 🛠️ Advanced Configuration
-
-### Whisper Model Options
-Set `WHISPER_MODEL` in `.env`:
-- `tiny.en` - Fastest, least accurate (default)
-- `base.en` - Good balance of speed/accuracy
-- `small.en` - Better accuracy, slower
-- `medium.en` - Best accuracy, slowest
 
 ### FFmpeg Configuration
 If FFmpeg is not in your system PATH:
@@ -216,11 +202,11 @@ The main script includes built-in API testing:
 
 ```bash
 # Run with built-in API testing
-python podcast_generator.py
-# The script automatically tests Gemini AI and AssemblyAI connections
+python main.py
+# The script automatically tests Gemini AI connections
 
 # Test with local data only
-python podcast_generator.py
+python main.py
 # Choose option 2 (Local) when prompted
 ```
 
@@ -249,10 +235,8 @@ Add verbose logging by modifying the script or check output files for detailed e
 ## 📝 Dependencies
 
 ### Core Dependencies
-- `gTTS==2.5.1` - Text-to-speech generation
+- `google-generativeai` - Gemini AI integration for TTS and transcription
 - `yt-dlp==2024.7.16` - Video downloading
-- `faster-whisper==1.0.3` - Speech-to-text transcription
-- `google-generativeai` - Gemini AI integration
 - `requests==2.31.0` - HTTP requests
 - `python-dotenv==1.0.0` - Environment variable management
 
@@ -281,9 +265,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **Arweave Team** - For the innovative permanent storage ecosystem
-- **Google Gemini AI** - For natural language processing capabilities
-- **AssemblyAI** - For speaker diarization services
-- **OpenAI Whisper** - For accurate speech transcription
+- **Google Gemini AI** - For natural language processing, TTS, and transcription capabilities
+- **OpenAI** - For inspiration in AI-powered content generation
 - **Community Contributors** - For feedback and improvements
 
 ## 📞 Support
